@@ -47,8 +47,6 @@ anaconda-install-env-deps
 grub2-efi-x64
 grub2-efi-x64-cdboot
 grub2-efi-x64-modules
-grub2-pc
-grub2-pc-modules
 shim-x64
 efibootmgr
 tar
