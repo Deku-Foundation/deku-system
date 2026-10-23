@@ -39,7 +39,7 @@ impl Scanner {
             let start = Span::new(self.line, self.column);
             let ch = self.advance();
 
-            if is_bidi_control(ch) {
+            if is_forbidden_control(ch) {
                 return Err(Diagnostic::new(
                     Phase::Lexical,
                     start,
@@ -50,7 +50,7 @@ impl Scanner {
             match ch {
                 ' ' | '\t' | '\r' => {}
                 '\n' => self.push(TokenKind::Newline, start),
-                '#' => self.skip_comment(),
+                '#' => self.skip_comment(start)?,
                 '(' => self.push(TokenKind::LeftParen, start),
                 ')' => self.push(TokenKind::RightParen, start),
                 ',' | '،' => self.push(TokenKind::Comma, start),
@@ -237,10 +237,22 @@ impl Scanner {
         ))
     }
 
-    fn skip_comment(&mut self) {
-        while self.peek().is_some_and(|ch| ch != '\n') {
+    fn skip_comment(&mut self, comment_span: Span) -> Result<(), Diagnostic> {
+        while let Some(ch) = self.peek() {
+            if ch == '\n' {
+                break;
+            }
+            if is_forbidden_control(ch) {
+                return Err(Diagnostic::new(
+                    Phase::Lexical,
+                    Span::new(self.line, self.column),
+                    "محارف اتجاه النص أو التنسيق غير المرئية ممنوعة حتى داخل التعليقات",
+                ));
+            }
             self.advance();
         }
+        let _ = comment_span;
+        Ok(())
     }
 
     fn push(&mut self, kind: TokenKind, span: Span) {
@@ -306,10 +318,10 @@ fn normalize_digit(ch: char) -> char {
     }
 }
 
-fn is_bidi_control(ch: char) -> bool {
+fn is_forbidden_control(ch: char) -> bool {
     matches!(
         ch as u32,
-        0x061C | 0x200E..=0x200F | 0x202A..=0x202E | 0x2066..=0x2069
+        0x061C | 0x200B..=0x200F | 0x202A..=0x202E | 0x2060 | 0x2066..=0x2069 | 0xFEFF
     )
 }
 
