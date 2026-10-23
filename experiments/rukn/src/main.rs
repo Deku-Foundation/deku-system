@@ -70,7 +70,7 @@ fn entry() -> Result<(), Diagnostic> {
 
     if command == "check" {
         check(&source)?;
-        println!("الشيفرة سليمة نحويًا؛ لم يتم تنفيذها.");
+        println!("التحليل النحوي والتحقق الدلالي سليمان؛ لم يتم تنفيذ الشيفرة.");
     } else {
         for line in run(&source)? {
             println!("{line}");
