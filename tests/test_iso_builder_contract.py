@@ -71,7 +71,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertNotIn("pull_request:", self.workflow)
 
     def test_privileged_builder_has_no_checkout_credentials_or_host_network(self):
-        self.assertEqual(self.workflow.count("persist-credentials: false"), 3)
+        self.assertEqual(self.workflow.count("persist-credentials: false"), 4)
         self.assertNotIn("--network=host", self.workflow)
         self.assertIn("permissions:", self.workflow)
         self.assertIn("  contents: read", self.workflow)
@@ -85,10 +85,22 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertLess(boot, final_cleanup, "final artifact normalization must remain after the boot test")
         self.assertIn('sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts', self.workflow)
 
+    def test_rust_profile_validator_runs_before_privileged_image_build(self):
+        validate = self.workflow.index("Validate profile and Kickstart in Rust before privileged build")
+        build = self.workflow.index("Build in disposable Fedora 44 container")
+        self.assertLess(validate, build)
+        self.assertIn("repository: Deku-Foundation/deku-build", self.workflow)
+        self.assertIn("validate-profile", self.workflow)
+
+    def test_uefi_boot_harness_receives_code_and_writable_vars(self):
+        self.assertIn(' --firmware "$OVMF_CODE" \\', self.workflow)
+        self.assertIn(' --firmware-vars "$OVMF_VARS" \\', self.workflow)
+        self.assertIn("OVMF_VARS_4M.fd", self.workflow)
+
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
         refs = [line.strip()[5:] for line in self.workflow.splitlines() if line.strip().startswith("ref: ")]
-        self.assertEqual(len(refs), 2, "profile and test harness must both use explicit commit refs")
+        self.assertEqual(len(refs), 3, "profile, Rust validator and test harness must use explicit commit refs")
         self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in refs), f"mutable or invalid checkout ref found: {refs}")
 
 if __name__ == "__main__":
