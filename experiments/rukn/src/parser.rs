@@ -31,7 +31,11 @@ impl Parser {
                 let name = self.consume_identifier("اسم المتغير")?;
                 self.consume(&TokenKind::Equal, "علامة '=' بعد اسم المتغير")?;
                 let value = self.expression()?;
-                StmtKind::Declare { name, mutable, value }
+                StmtKind::Declare {
+                    name,
+                    mutable,
+                    value,
+                }
             }
             TokenKind::Identifier(name) => {
                 self.advance();
@@ -287,8 +291,10 @@ impl Parser {
     }
 
     fn finish_statement(&mut self) -> Result<(), Diagnostic> {
-        if self.check(&TokenKind::Newline) || self.check(&TokenKind::Eof)
-            || self.check(&TokenKind::End) || self.check(&TokenKind::Else)
+        if self.check(&TokenKind::Newline)
+            || self.check(&TokenKind::Eof)
+            || self.check(&TokenKind::End)
+            || self.check(&TokenKind::Else)
         {
             Ok(())
         } else {
