@@ -97,6 +97,21 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertIn(' --firmware-vars "$OVMF_VARS" \\', self.workflow)
         self.assertIn("OVMF_VARS_4M.fd", self.workflow)
 
+    def test_fedora44_repo_urls_and_security_defaults_are_explicit(self):
+        self.assertIn('url --url="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/"', self.kickstart)
+        self.assertIn('repo --name="updates" --baseurl="https://download.fedoraproject.org/pub/fedora/linux/updates/44/Everything/x86_64/"', self.kickstart)
+        self.assertNotIn("/45/", self.kickstart)
+        self.assertIn("rootpw --lock", self.kickstart)
+        self.assertIn("selinux --enforcing", self.kickstart)
+        self.assertIn("firewall --enabled", self.kickstart)
+        self.assertRegex(self.kickstart, r'services --disabled="[^"]*sshd')
+
+    def test_profile_preflight_uses_pinned_locked_rust_dependencies(self):
+        self.assertIn("ref: 328eeaf49a23af96cf07b39fa51c35979ee61dc6", self.workflow)
+        self.assertIn("uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec", self.workflow)
+        self.assertIn("toolchain: 1.99.1", self.workflow)
+        self.assertIn("cargo run --locked -- validate-profile", self.workflow)
+
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
         refs = [line.strip()[5:] for line in self.workflow.splitlines() if line.strip().startswith("ref: ")]
