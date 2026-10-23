@@ -112,6 +112,14 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertIn("toolchain: 1.99.1", self.workflow)
         self.assertIn("cargo run --locked -- validate-profile", self.workflow)
 
+    def test_in_image_package_manifest_has_single_newline_escape(self):
+        self.assertIn(r"%{ARCH}\\n' | sort > /etc/deku-package-manifest.txt", self.kickstart)
+        self.assertNotIn(r"%{ARCH}\\\\n' | sort > /etc/deku-package-manifest.txt", self.kickstart)
+
+    def test_privileged_build_runs_only_from_dev_even_on_manual_dispatch(self):
+        self.assertIn("workflow_dispatch:", self.workflow)
+        self.assertIn("if: github.ref == 'refs/heads/dev'", self.workflow)
+
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
         refs = [line.strip()[5:] for line in self.workflow.splitlines() if line.strip().startswith("ref: ")]
