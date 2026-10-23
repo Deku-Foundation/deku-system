@@ -68,7 +68,7 @@ install -D -m 0755 /dev/stdin /usr/local/libexec/deku-boot-acceptance.sh <<'SCRI
 set -Eeuo pipefail
 
 fail() {
-  printf 'DEKU_BOOT_FAIL:%s\\n' "$1"
+  printf 'DEKU_BOOT_FAIL:%s\n' "$1"
   exit 1
 }
 
@@ -76,7 +76,7 @@ check() {
   local name="$1"
   shift
   if "$@"; then
-    printf 'DEKU_CHECK_OK:%s\\n' "$name"
+    printf 'DEKU_CHECK_OK:%s\n' "$name"
   else
     fail "$name"
   fi
@@ -88,13 +88,13 @@ check network-manager systemctl is-active --quiet NetworkManager
 if systemctl is-enabled --quiet sshd; then
   fail sshd-enabled
 fi
-printf 'DEKU_CHECK_OK:sshd-not-enabled\\n'
+printf 'DEKU_CHECK_OK:sshd-not-enabled\n'
 if [[ -r /sys/fs/selinux/enforce && "$(cat /sys/fs/selinux/enforce)" == "1" ]]; then
-  printf 'DEKU_CHECK_OK:selinux-enforcing\\n'
+  printf 'DEKU_CHECK_OK:selinux-enforcing\n'
 else
   fail selinux-not-enforcing
 fi
-printf 'DEKU_BOOT_OK:minimal-x86_64\\n'
+printf 'DEKU_BOOT_OK:minimal-x86_64\n'
 SCRIPT
 
 cat > /etc/systemd/system/deku-boot-marker.service <<'EOF'
