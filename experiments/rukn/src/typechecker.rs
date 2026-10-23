@@ -224,7 +224,8 @@ impl Checker {
                     _ => Err(type_error(
                         expression.span,
                         format!(
-                            "العامل {operator:?} لا يقبل نوعي {} و{}",
+                            "العامل «{}» لا يقبل نوعي {} و{}",
+                            operator_description(*operator),
                             left_type.arabic(),
                             right_type.arabic()
                         ),
@@ -235,8 +236,26 @@ impl Checker {
     }
 }
 
+fn operator_description(operator: BinaryOp) -> &'static str {
+    match operator {
+        BinaryOp::Add => "+",
+        BinaryOp::Subtract => "-",
+        BinaryOp::Multiply => "*",
+        BinaryOp::Divide => "/",
+        BinaryOp::Remainder => "%",
+        BinaryOp::Equal => "==",
+        BinaryOp::NotEqual => "!=",
+        BinaryOp::Less => "<",
+        BinaryOp::LessEqual => "<=",
+        BinaryOp::Greater => ">",
+        BinaryOp::GreaterEqual => ">=",
+        BinaryOp::And => "و",
+        BinaryOp::Or => "أو",
+    }
+}
+
 fn type_error(span: crate::diagnostic::Span, message: impl Into<String>) -> Diagnostic {
-    Diagnostic::new(Phase::Syntax, span, message)
+    Diagnostic::new(Phase::Semantic, span, message)
 }
 
 #[cfg(test)]
