@@ -79,9 +79,9 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
 
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
-        self.assertIn("ref: 2924c0eabe745542f61985062ad164133e5e006f", self.workflow)
-        self.assertIn("ref: 618ac8a9fff706bfa446f482ab23d749f7511a6d", self.workflow)
-
+        refs = [line.strip()[5:] for line in self.workflow.splitlines() if line.strip().startswith("ref: ")]
+        self.assertEqual(len(refs), 2, "profile and test harness must both use explicit commit refs")
+        self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in refs), f"mutable or invalid checkout ref found: {refs}")
 
 if __name__ == "__main__":
     unittest.main()
