@@ -4,7 +4,7 @@
 
 ## 1. Source model
 
-A source file is UTF-8. Line and column locations count Unicode code points starting from one; columns are not terminal display-cell measurements. Newlines separate simple statements. Blank lines and comments are ignored. A comment begins with `#` and continues to the end of that line.
+A source file is UTF-8 and is limited by the current implementation to 256 KiB and 2,048 lexer tokens. Syntax nesting for blocks, parenthesized expressions and chains of unary operators is limited to 128 levels. Line and column locations count Unicode code points starting from one; columns are not terminal display-cell measurements. Newlines separate simple statements. Blank lines and comments are ignored. A comment begins with `#` and continues to the end of that line.
 
 Arabic is the primary keyword surface. The parser is deterministic and does not infer intent from natural-language phrasing. Operators and grouping punctuation remain conventional ASCII characters; the Arabic comma `،` is accepted by the lexer, although the Stage-0 grammar has no comma-separated constructs.
 
@@ -78,7 +78,7 @@ Conditional and loop bodies introduce lexical scopes. Bindings declared within a
 
 Integer addition, subtraction, multiplication, unary negation, division and remainder use checked 64-bit operations. Overflow and division by zero produce an error rather than wrapping or panicking. Comparisons operate on integers. Equality operates on values of the same type; values of different types compare unequal.
 
-The interpreter has a default step budget of 1,000,000 statement/loop steps. This prevents accidental infinite loops in the prototype; it is not a sandbox or a security boundary. Printed Boolean values are `صح` and `خطأ`.
+The interpreter has a default step budget of 1,000,000 statement/loop steps, caps individual text values at 256 KiB and total printed output at 1 MiB. This prevents accidental infinite loops in the prototype; it is not a sandbox or a security boundary. Printed Boolean values are `صح` and `خطأ`.
 
 ## 7. Diagnostics
 
