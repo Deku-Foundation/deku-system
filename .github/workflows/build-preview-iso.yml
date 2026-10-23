@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-tests
-          ref: main
+          ref: 618ac8a9fff706bfa446f482ab23d749f7511a6d
           path: deku-tests
       - name: Install QEMU and UEFI firmware
         run: |
