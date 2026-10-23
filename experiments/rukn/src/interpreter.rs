@@ -25,7 +25,10 @@ impl Value {
     fn into_boolean(self, span: Span) -> Result<bool, Diagnostic> {
         match self {
             Self::Boolean(value) => Ok(value),
-            _ => Err(runtime_error(span, "يتطلب الشرط قيمة منطقية: «صح» أو «خطأ»")),
+            _ => Err(runtime_error(
+                span,
+                "يتطلب الشرط قيمة منطقية: «صح» أو «خطأ»",
+            )),
         }
     }
 }
@@ -74,7 +77,10 @@ impl Interpreter {
                 value,
             } => {
                 let evaluated = self.evaluate(value)?;
-                let scope = self.scopes.last_mut().expect("a global scope always exists");
+                let scope = self
+                    .scopes
+                    .last_mut()
+                    .expect("a global scope always exists");
                 if scope.contains_key(name) {
                     return Err(runtime_error(
                         statement.span,
@@ -156,10 +162,7 @@ impl Interpreter {
                 .find_map(|scope| scope.get(name))
                 .map(|binding| binding.value.clone())
                 .ok_or_else(|| {
-                    runtime_error(
-                        expression.span,
-                        format!("المتغير «{name}» غير معرّف"),
-                    )
+                    runtime_error(expression.span, format!("المتغير «{name}» غير معرّف"))
                 }),
             ExprKind::Unary { operator, right } => {
                 let value = self.evaluate(right)?;
@@ -228,9 +231,15 @@ impl Interpreter {
         use Value as Val;
 
         match (left, operator, right) {
-            (Val::Integer(a), Op::Add, Val::Integer(b)) => checked_integer(a.checked_add(b), span, "الجمع"),
-            (Val::Integer(a), Op::Subtract, Val::Integer(b)) => checked_integer(a.checked_sub(b), span, "الطرح"),
-            (Val::Integer(a), Op::Multiply, Val::Integer(b)) => checked_integer(a.checked_mul(b), span, "الضرب"),
+            (Val::Integer(a), Op::Add, Val::Integer(b)) => {
+                checked_integer(a.checked_add(b), span, "الجمع")
+            }
+            (Val::Integer(a), Op::Subtract, Val::Integer(b)) => {
+                checked_integer(a.checked_sub(b), span, "الطرح")
+            }
+            (Val::Integer(a), Op::Multiply, Val::Integer(b)) => {
+                checked_integer(a.checked_mul(b), span, "الضرب")
+            }
             (Val::Integer(_), Op::Divide | Op::Remainder, Val::Integer(0)) => {
                 Err(runtime_error(span, "القسمة على صفر غير مسموحة"))
             }
@@ -272,17 +281,10 @@ impl Interpreter {
     }
 }
 
-fn checked_integer(
-    value: Option<i64>,
-    span: Span,
-    operation: &str,
-) -> Result<Value, Diagnostic> {
-    value.map(Value::Integer).ok_or_else(|| {
-        runtime_error(
-            span,
-            format!("تجاوز عددي أثناء عملية {operation}"),
-        )
-    })
+fn checked_integer(value: Option<i64>, span: Span, operation: &str) -> Result<Value, Diagnostic> {
+    value
+        .map(Value::Integer)
+        .ok_or_else(|| runtime_error(span, format!("تجاوز عددي أثناء عملية {operation}")))
 }
 
 fn runtime_error(span: Span, message: impl Into<String>) -> Diagnostic {
