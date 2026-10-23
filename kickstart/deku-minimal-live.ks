@@ -63,6 +63,8 @@ Profile: minimal-x86_64
 Status: experimental; not an independent distribution
 EOF
 
+rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\\n' | sort > /etc/deku-package-manifest.txt
+
 cat > /etc/systemd/system/deku-boot-marker.service <<'EOF'
 [Unit]
 Description=Deku Linux disposable VM boot acceptance marker
