@@ -11,7 +11,17 @@ enum DigitSet {
     ExtendedArabicIndic,
 }
 
+pub const MAX_SOURCE_BYTES: usize = 256 * 1024;
+const MAX_TOKENS: usize = 2_048;
+
 pub fn lex(source: &str) -> Result<Vec<Token>, Diagnostic> {
+    if source.len() > MAX_SOURCE_BYTES {
+        return Err(Diagnostic::new(
+            Phase::Lexical,
+            Span::new(1, 1),
+            format!("تجاوز الملف حد الحجم البالغ {MAX_SOURCE_BYTES} بايت"),
+        ));
+    }
     Scanner::new(source).scan()
 }
 
@@ -104,6 +114,13 @@ impl Scanner {
                         format!("محرف غير معروف: {ch:?}"),
                     ));
                 }
+            }
+            if self.tokens.len() > MAX_TOKENS {
+                return Err(Diagnostic::new(
+                    Phase::Lexical,
+                    start,
+                    format!("تجاوز المصدر حد الرموز البالغ {MAX_TOKENS}"),
+                ));
             }
         }
 
@@ -327,6 +344,22 @@ fn is_forbidden_control(ch: char) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rejects_source_larger_than_the_configured_limit() {
+        let source = " ".repeat(MAX_SOURCE_BYTES + 1);
+        let error = lex(&source).unwrap_err();
+        assert_eq!(error.phase, Phase::Lexical);
+        assert!(error.message.contains("حد الحجم"));
+    }
+
+    #[test]
+    fn rejects_excessive_token_count() {
+        let source = "+".repeat(MAX_TOKENS + 1);
+        let error = lex(&source).unwrap_err();
+        assert_eq!(error.phase, Phase::Lexical);
+        assert!(error.message.contains("حد الرموز"));
+    }
 
     #[test]
     fn lexes_arabic_keywords_and_identifiers() {
