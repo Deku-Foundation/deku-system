@@ -129,7 +129,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
 
     def test_in_image_package_manifest_has_single_newline_escape(self):
         self.assertIn(r"%{ARCH}\n' | sort > /etc/deku-package-manifest.txt", self.kickstart)
-        self.assertNotIn(r"%{ARCH}\\n' | sort > /etc/deku-package-manifest.txt", self.kickstart)
+        self.assertNotIn(r"%{ARCH}\\n' | LC_ALL=C sort > /etc/deku-package-manifest.txt", self.kickstart)
 
     def test_privileged_build_runs_only_from_dev_even_on_manual_dispatch(self):
         self.assertIn("workflow_dispatch:", self.workflow)
