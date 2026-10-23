@@ -59,9 +59,11 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
 
     def test_boot_marker_unit_has_no_target_ordering_cycle(self):
         self.assertIn("WantedBy=multi-user.target", self.kickstart)
-        self.assertIn("After=systemd-user-sessions.service", self.kickstart)
+        self.assertIn("systemd-user-sessions.service", self.kickstart)
         self.assertNotIn("After=multi-user.target", self.kickstart)
         self.assertIn("DEKU_BOOT_OK:minimal-x86_64", self.kickstart)
+        self.assertIn("scripts/write-provenance.py", self.workflow)
+        self.assertIn("--timeout 420", self.workflow)
 
     def test_builder_fails_closed_on_missing_boot_packages(self):
         for package in ("grub2-pc", "grub2-pc-modules", "grub2-tools", "grub2-efi-x64", "efibootmgr"):
