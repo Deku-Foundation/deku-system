@@ -42,12 +42,15 @@ The build log also contains non-fatal environment warnings, including a GRUB pro
 
 The [workflow](../.github/workflows/build-preview-iso.yml) now:
 1. checks out immutable revisions for the profile, Rust validator and boot harness;
-2. runs deku-build validate-profile before the privileged image-building stage;
+2. runs `deku-build validate-profile` before the privileged image-building stage;
 3. builds in an ephemeral, digest-pinned Fedora 44 container without secrets or host networking;
 4. uses Lorax/Anaconda to build the live ISO and emits a checksum and build manifest;
 5. changes ownership only on the generated artifact directory before the host-side QEMU test;
-6. verifies the ISO digest, boots with OVMF pflash code plus a fresh writable variable store, and requires the serial marker;
-7. uploads the ISO, checksum, build manifest and diagnostics as a short-retention Actions artifact.
+6. verifies the ISO digest and boots with OVMF pflash code plus a fresh writable variable store;
+7. runs guest-side checks for release metadata, installed package inventory, active NetworkManager, disabled SSH service, and enforcing SELinux before emitting the boot-success marker;
+8. streams the installed RPM inventory over serial, validates its syntax/order/uniqueness, and records its digest in the build manifest;
+9. emits an unsigned in-toto Statement binding the ISO digest to source revisions, builder image, package-inventory digest and boot result;
+10. uploads the ISO, checksum, package inventory, build manifest, unsigned statement and diagnostics as a short-retention Actions artifact.
 
 The current workflow pins the Rust validator to a revision containing Cargo.lock, pins the toolchain to 1.99.1, and runs cargo run --locked -- validate-profile. A subsequent end-to-end run must verify the updated canonical profile and locked validator together.
 
@@ -56,7 +59,8 @@ The current workflow pins the Rust validator to a revision containing Cargo.lock
 - The builder container digest and source checkout revisions are pinned, and the workflow uses read-only repository permissions and does not persist checkout credentials.
 - The image build needs a privileged container and downloads packages from Fedora's HTTPS release and updates repositories. It runs on an ephemeral GitHub-hosted runner with no secrets; do not move this workflow to a persistent self-hosted runner without a separately reviewed sandbox.
 - Fedora's release/updates repositories are rolling package inputs, not immutable snapshots. Recording build inputs and installed package inventory improves traceability, but does not make the entire image reproducible.
-- The build currently has no attached signed provenance, no complete external SBOM, no release signature and no permanent artifact retention.
+- The in-toto statement is unsigned traceability data, not publisher authentication or a SLSA compliance claim. The RPM inventory is not a complete SBOM: package file hashes, declared licenses, dependency relationships and repository signature evidence are still missing.
+- The build has no release signature and no permanent artifact retention.
 - The ISO is an experimental artifact only. It must not be advertised as a stable release or recommended for physical installation.
 
 ## Acceptance gates
@@ -68,7 +72,7 @@ Build exits successfully; a non-empty ISO and SHA-256 exist; QEMU/OVMF boots it;
 Rerun the workflow with the canonical profile and locked validator. Add post-boot checks for root overlay, expected package manifest, systemd readiness, networking state, SSH disabled and failed units. Retain serial, QEMU stderr and machine-readable results.
 
 ### Gate C — build integrity
-Capture exact resolved target RPM NEVRAs and hashes, resolve the mutable-repository limitation, emit a standard SBOM and provenance, and compare at least two clean builds. Do not claim reproducibility until outputs are compared.
+Capture exact resolved target RPM identifiers and hashes, include epoch in the package inventory, resolve the mutable-repository limitation, emit a standards-conformant SBOM and authenticated provenance, and compare at least two clean builds. Do not claim reproducibility until outputs are compared.
 
 ### Gate D — installation and recovery
 Only after Gate B passes, test installation to a disposable virtual disk, interrupted operations, recovery and rollback. No physical disk access in CI.
