@@ -369,7 +369,7 @@ mod tests {
     #[test]
     fn string_concatenation_has_a_size_limit() {
         let source = "دع س = \"x\"\nدع عدد = 0\nطالما عدد < 20\nس = س + س\nعدد = عدد + 1\nنهاية";
-        let error = run(&source).unwrap_err();
+        let error = run(source).unwrap_err();
         assert!(error.message.contains("حد الحجم"));
     }
 
