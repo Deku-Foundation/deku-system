@@ -415,6 +415,21 @@ mod tests {
     }
 
     #[test]
+    fn rejects_excessively_nested_blocks() {
+        let depth = MAX_SYNTAX_DEPTH + 1;
+        let mut source = String::new();
+        for _ in 0..depth {
+            source.push_str("إذا صح\n");
+        }
+        source.push_str("اطبع(1)\n");
+        for _ in 0..depth {
+            source.push_str("نهاية\n");
+        }
+        let error = parse(lex(&source).unwrap()).unwrap_err();
+        assert!(error.message.contains("تجاوز تداخل الكتل"));
+    }
+
+    #[test]
     fn rejects_unclosed_blocks() {
         let tokens = lex("إذا صح\nاطبع(1)").unwrap();
         assert!(parse(tokens).is_err());
