@@ -77,6 +77,14 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertIn("  contents: read", self.workflow)
         self.assertIn("  contents: read", self.workflow)
 
+    def test_artifact_ownership_is_fixed_before_host_side_boot_evidence(self):
+        normalize = self.workflow.index("Prepare generated artifact permissions for host-side boot test")
+        boot = self.workflow.index("Boot ISO in disposable UEFI QEMU")
+        final_cleanup = self.workflow.index("Normalize artifact permissions")
+        self.assertLess(normalize, boot, "root-owned container output must be writable before the harness starts")
+        self.assertLess(boot, final_cleanup, "final artifact normalization must remain after the boot test")
+        self.assertIn('sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts', self.workflow)
+
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
         refs = [line.strip()[5:] for line in self.workflow.splitlines() if line.strip().startswith("ref: ")]
