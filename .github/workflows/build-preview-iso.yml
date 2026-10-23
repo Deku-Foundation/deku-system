@@ -39,7 +39,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace/deku-system \
             fedora:44 bash -euxo pipefail -c '
-              dnf -y install lorax lorax-lmc-novirt
+              dnf -y install lorax lorax-lmc-novirt grub2-pc-modules policycoreutils
               bash ./scripts/build-preview-iso.sh
             '
       - name: Check out boot acceptance harness
@@ -65,6 +65,12 @@ jobs:
             --marker "DEKU_BOOT_OK:minimal-x86_64" \
             --timeout 180 \
             --evidence-dir deku-system/artifacts/boot-test
+      - name: Normalize artifact permissions
+        if: always()
+        run: |
+          if [ -d deku-system/artifacts ]; then
+            sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts
+          fi
       - name: Upload ISO and evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
