@@ -1,53 +1,80 @@
 # First ISO Pipeline
 
-Status: the experimental Fedora 44 ISO has been generated and uploaded as a short-retention CI artifact, but it has **not passed the UEFI boot gate**. The first completed VM attempt failed before firmware startup because the harness passed OVMF as a legacy `-bios` image. The harness now uses a matching OVMF pflash code/variable-store pair, and CI is retesting that fix. No successful boot is claimed.
+Status: **the first experimental Fedora 44 ISO has been built and booted to the declared console marker in UEFI/QEMU**. This proves the basic build-to-boot path for one run. It does not prove production readiness, hardware compatibility, a native Deku package system, reproducibility, signed updates, or an independent root filesystem.
 
-## Decision
-Prove bootability with a mature upstream base and image tool first. This is a technology preview, not proof that Deku's native package manager is ready or that the system is independently bootstrapped.
+## Verified evidence
 
-## Tool evaluation and current proposal
-The current proposal in [ADR-0001](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/adr/0001-first-iso-and-rust-first-architecture.md) is to evaluate Fedora 44 plus Lorax/livemedia-creator for the first actual ISO, with Fedora 45 only after final repository and builder compatibility are verified. Lorax's documented `livemedia-creator --make-iso` path requires Anaconda install media, a Kickstart file and a suitable build environment; CI feasibility is a gate, not an assumption. Evaluate systemd/mkosi in parallel for disk/system-tree images, not as if it directly emits an ISO. If the prototype base is Void, use the Void-supported void-mklive/XBPS path instead. Pin tool and package inputs before implementation.
+- Successful workflow: [Build experimental ISO — run 40003527897](https://github.com/Deku-Foundation/deku-system/actions/runs/40003527897).
+- System source commit used by that run: 7425a13d507a9e909c2dc546c81269f1daf6ff43.
+- ISO SHA-256: a5d604ea3964a8a05c7a42b0c515586204e0f5c23a1a5e412fa585649eca5a58.
+- Uploaded Actions artifact: deku-linux-experimental-iso-40003527897, artifact ID 12524770503.
+- Artifact ZIP SHA-256: 847bf4d9a0f38f080f0d619cf5c33b551b1ec91e758469ad263f63d8c773ffaa.
+- Artifact ZIP size: 1,832,681,650 bytes; retained until 2026-10-30T18:44:42Z. This is the ZIP size, not the raw ISO size.
+- UEFI QEMU smoke test observed DEKU_BOOT_OK:minimal-x86_64 after approximately 190 seconds. Build, Rust profile preflight, artifact ownership fix-up, boot test and artifact upload all passed.
+- The profile used at that time was commit 2924c0eabe745542f61985062ad164133e5e006f (Fedora 44), the validator was 9bc9426cb685f91b46af46237b97d03c2c7abf34, and the boot harness was d1c9b69b65e9c72dcd33c68b54559dc8424ef9f8.
 
+**Integrity note:** the ISO digest and Actions ZIP digest identify different files. The ISO digest verifies the image bytes; the ZIP digest verifies the downloaded evidence bundle. The temporary artifact is not a permanent download or an official release.
 
-As of 2026-10-23, Fedora 45 has not completed its final release gate; the Fedora project schedule still lists the release-party date for 30 October. Keep the first baseline on Fedora 44 rather than treating Fedora 45 beta content as a stable base. Revisit the version only after Fedora 45 Final is published and its release/update repositories are verified. Reference: https://rsvp.fedoraproject.org/releases/f45/.
+## Architecture choice
 
-## Current implementation and failure evidence
+Reuse proven tools at their intended boundaries rather than combining incompatible distribution stacks:
 
-The current workflow lives at `.github/workflows/build-preview-iso.yml` and runs only for selected builder-file changes on `dev` or manual dispatch. It checks out a pinned Fedora 44 container image and a pinned profile commit, then runs `livemedia-creator --make-iso --no-virt --iso-only` inside an ephemeral privileged container without host networking or secrets. It retains builder inventory, build logs and artifacts. The privilege boundary is acceptable only for a disposable GitHub-hosted runner; do not run this workflow's privileged container on a personal workstation.
+- **Fedora + Lorax/livemedia-creator** is the current path for a real live ISO and Anaconda/Kickstart integration.
+- **Nix/NixOS** is the reference for declarative system composition, explicit input graphs and clean rebuild comparisons; NixOS image generation is not a drop-in Fedora ISO backend.
+- **Void + void-mklive/XBPS** remains a viable alternative only if Deku explicitly selects the XBPS/runit ecosystem. Upstream warns that void-mklive is not guaranteed to work outside Void or inside containers.
+- **Rust** is Deku's implementation choice for the control plane we own: profile/manifest validation, dependency planning, build orchestration, artifact verification and release tooling. Do not rewrite the Linux kernel, libc, systemd, KDE or Lorax just to increase the Rust percentage.
 
-The first attempt installed the target packages, configured systemd, and generated the live initramfs, but the final ISO template failed because `grub2-mkimage` could not find `/usr/lib/grub/i386-pc/moddep.lst` in Lorax's staging tree. The Kickstart and profile now explicitly include `grub2-pc`, `grub2-pc-modules`, `grub2-tools`, `grub2-tools-extra`, and the UEFI boot packages. The marker service ordering was changed from `After=multi-user.target` to `After=systemd-user-sessions.service` to avoid a target ordering cycle. The rerun must prove the fix; source changes and passing contract tests alone are not proof.
+References: [Fedora Lorax](https://github.com/weldr/lorax), [NixOS image building](https://nixos.org/manual/nixos/stable/), [Void live-image builder](https://github.com/void-linux/void-mklive), [SLSA build levels](https://slsa.dev/spec/v1.0/levels).
 
-A later build completed image authoring and uploaded the ISO, manifest, checksums and logs. Its VM step then failed with `qemu: could not load PC BIOS '/usr/share/OVMF/OVMF_CODE_4M.fd'`. The root cause was a harness invocation error, not evidence that the ISO itself failed to boot: OVMF code must be loaded as read-only pflash with a separate writable variables image, not through QEMU's legacy `-bios` option. `deku-tests` now copies the matching variable-store template into a temporary directory and launches QEMU with paired pflash drives. The next run must prove the firmware starts and the serial boot marker appears.
+## What the passing run proves — and what it does not
 
-The profile and builder container are pinned by commit/digest, but Fedora's release and updates repositories are still rolling package inputs. The in-image RPM manifest and external build manifest improve traceability but do not yet make the entire system build reproducible. A future release gate must snapshot or otherwise lock all resolved package versions and preserve provenance/SBOM evidence.
+The workflow built one non-empty Fedora 44-based image, calculated its SHA-256 and launched it under QEMU with a matching OVMF code/variable-store pair. The smoke harness observed the serial marker emitted by the custom systemd oneshot service after systemd-user-sessions.service.
 
-## Image stages
-1. Validate the pinned profile and require the Kickstart to include its package set plus live-image bootloader requirements.
-2. Resolve the Fedora 44 release/updates package set; record the limitation that these repositories are not yet an immutable snapshot.
-3. Generate a build manifest containing the source commit, profile revision, builder image digest, Lorax version, Kickstart/profile checksums and builder package inventory.
-4. Use Lorax/Anaconda to assemble an x86_64 live root filesystem, initramfs and bootable ISO.
-5. Require one non-empty ISO and generate a SHA-256 sidecar; retain build logs.
-6. Boot in disposable QEMU with UEFI firmware. Capture serial output and QEMU stderr.
-7. Require the marker service to prove userspace reached the declared target. This is a console smoke test, not a desktop or hardware certification.
-8. Store the ISO, checksums, manifest, boot result and logs as short-retention workflow artifacts, not a public release.
+It does **not** yet prove:
+- real-hardware boot, BIOS boot, Secure Boot, installation to a disk or successful recovery;
+- a full login/network/package-manager acceptance suite, a graphical KDE Plasma desktop or support for other architectures;
+- that deku-pkg can install, authenticate, upgrade or roll back packages;
+- independent reproducibility, an immutable Fedora package snapshot, a complete SPDX/CycloneDX SBOM, signed release provenance or a production signing/update service.
 
-## First target
-- Architecture: x86_64.
-- Firmware: UEFI in the first CI gate.
-- User experience: console login before any desktop requirement.
-- Desktop: KDE Plasma remains the target direction, but defer it until the minimal image boots reliably.
-- No physical disk installation, production signing, Secure Boot claim or automatic updater in the first gate.
+The build log also contains non-fatal environment warnings, including a GRUB probe warning about the container's overlay filesystem, a missing systemd-tmpfiles-clear.service during presets, and a D-Bus connection unavailable in the no-virt builder. The image still booted to the marker, but those warnings must be classified and not silently treated as irrelevant.
 
-## Hard requirements
-- Never use floating package versions for a release candidate without recording the resolved snapshot.
-- Never include signing keys in the image-build workflow.
-- Fail if package sources are unavailable or checksums differ.
-- Fail if the VM does not reach the declared userspace target.
-- Publish no ISO link unless the artifact exists and boot-test evidence is available.
+## Current pipeline
 
-## Immediate engineering tasks
-1. Verify the paired OVMF pflash invocation and confirm QEMU reaches firmware and the live kernel.
-2. Require the boot-marker service to emit `DEKU_BOOT_OK:minimal-x86_64`; inspect preserved serial output and QEMU stderr if it does not.
-3. Keep the ISO private to short-retention CI artifacts until boot evidence is recorded; do not promote on metadata-only checks.
-4. Snapshot or lock resolved Fedora package inputs before making reproducibility claims.
-5. After a successful console boot, compare the upstream-base demo against an independent native package/rootfs track, and record the long-term base/libc/init/update decisions as ADRs.
+The [workflow](../.github/workflows/build-preview-iso.yml) now:
+1. checks out immutable revisions for the profile, Rust validator and boot harness;
+2. runs deku-build validate-profile before the privileged image-building stage;
+3. builds in an ephemeral, digest-pinned Fedora 44 container without secrets or host networking;
+4. uses Lorax/Anaconda to build the live ISO and emits a checksum and build manifest;
+5. changes ownership only on the generated artifact directory before the host-side QEMU test;
+6. verifies the ISO digest, boots with OVMF pflash code plus a fresh writable variable store, and requires the serial marker;
+7. uploads the ISO, checksum, build manifest and diagnostics as a short-retention Actions artifact.
+
+The current workflow pins the Rust validator to a revision containing Cargo.lock, pins the toolchain to 1.99.1, and runs cargo run --locked -- validate-profile. A subsequent end-to-end run must verify the updated canonical profile and locked validator together.
+
+## Supply-chain limits and security boundaries
+
+- The builder container digest and source checkout revisions are pinned, and the workflow uses read-only repository permissions and does not persist checkout credentials.
+- The image build needs a privileged container and downloads packages from Fedora's HTTPS release and updates repositories. It runs on an ephemeral GitHub-hosted runner with no secrets; do not move this workflow to a persistent self-hosted runner without a separately reviewed sandbox.
+- Fedora's release/updates repositories are rolling package inputs, not immutable snapshots. Recording build inputs and installed package inventory improves traceability, but does not make the entire image reproducible.
+- The build currently has no attached signed provenance, no complete external SBOM, no release signature and no permanent artifact retention.
+- The ISO is an experimental artifact only. It must not be advertised as a stable release or recommended for physical installation.
+
+## Acceptance gates
+
+### Gate A — artifact and UEFI console boot: passed once
+Build exits successfully; a non-empty ISO and SHA-256 exist; QEMU/OVMF boots it; the marker is observed; logs and hashes are preserved.
+
+### Gate B — current-profile rebuild and basic system checks: in progress
+Rerun the workflow with the canonical profile and locked validator. Add post-boot checks for root overlay, expected package manifest, systemd readiness, networking state, SSH disabled and failed units. Retain serial, QEMU stderr and machine-readable results.
+
+### Gate C — build integrity
+Capture exact resolved target RPM NEVRAs and hashes, resolve the mutable-repository limitation, emit a standard SBOM and provenance, and compare at least two clean builds. Do not claim reproducibility until outputs are compared.
+
+### Gate D — installation and recovery
+Only after Gate B passes, test installation to a disposable virtual disk, interrupted operations, recovery and rollback. No physical disk access in CI.
+
+### Gate E — independent Deku system
+Design and implement the native recipe/build/package/rootfs path in small increments. Keep Fedora as an explicitly labelled bootstrap/technology-preview base until the native stack passes build, install, update, rollback and security gates.
+
+### Gate F — release
+Publish only after signed release metadata, key rotation/revocation procedures, SBOM/provenance, supported scope, known limitations and release CI are in place. The current temporary Actions artifact is not a public release.
