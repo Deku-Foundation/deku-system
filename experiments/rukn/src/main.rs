@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::process::ExitCode;
 
-use rukn::{check, run, Diagnostic, Phase, Span};
+use rukn::{Diagnostic, Phase, Span, check, run};
 
 fn main() -> ExitCode {
     match entry() {
