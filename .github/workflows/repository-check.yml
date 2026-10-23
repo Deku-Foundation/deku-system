@@ -2,7 +2,7 @@ name: Repository checks
 
 on:
   push:
-    branches: [main, "ci/**"]
+    branches: [main, dev]
   pull_request:
   workflow_dispatch:
 
