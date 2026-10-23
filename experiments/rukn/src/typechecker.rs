@@ -268,8 +268,8 @@ mod tests {
 
     #[test]
     fn conditions_must_be_boolean() {
-        assert!(check_source("إذا 5\nاطبع(1)\nهاية").is_err());
-        assert!(check_source("إذا 5 > 3\nاطبع(1)\nهاية").is_ok());
+        assert!(check_source("إذا 5\nاطبع(1)\nنهاية").is_err());
+        assert!(check_source("إذا 5 > 3\nاطبع(1)\nنهاية").is_ok());
     }
 
     #[test]
