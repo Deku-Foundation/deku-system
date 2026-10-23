@@ -20,7 +20,7 @@ done
 [[ -f "$PROFILE" ]] || { echo "ERROR: profile not found: $PROFILE" >&2; exit 2; }
 
 rm -rf "$RESULT_DIR"
-mkdir -p "$OUT_DIR" "$RESULT_DIR"
+mkdir -p "$OUT_DIR" "$WORK_DIR"
 rm -f "$OUT_DIR"/*.iso "$OUT_DIR"/*.sha256 "$OUT_DIR"/*.txt "$OUT_DIR"/*.log
 
 {
