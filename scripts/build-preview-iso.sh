@@ -51,7 +51,11 @@ required = set(profile.get("package_selection", []))
 missing = sorted(required - listed)
 if missing:
     raise SystemExit("ERROR: profile packages missing from Kickstart: " + ", ".join(missing))
-required_live = {"grub2-pc", "grub2-pc-modules", "grub2-tools", "grub2-efi-x64", "efibootmgr", "dracut-live", "dracut-config-generic"}
+required_live = {
+    "grub2-pc", "grub2-pc-modules", "grub2-tools", "grub2-tools-extra",
+    "grub2-efi-x64", "grub2-efi-x64-cdboot", "grub2-efi-x64-modules",
+    "efibootmgr", "dracut-live", "dracut-config-generic"
+}
 missing_live = sorted(required_live - listed)
 if missing_live:
     raise SystemExit("ERROR: Kickstart omits required live-image/bootloader packages: " + ", ".join(missing_live))
