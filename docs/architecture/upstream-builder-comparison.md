@@ -4,7 +4,7 @@ Status: engineering decision note, reviewed 2026-10-23. This is a comparison of 
 
 ## Recommendation
 
-Keep the first bootable image on the existing Fedora + Lorax path until the current UEFI smoke test passes. Use that artifact only to prove the build-to-boot pipeline. Then test the same profile on the current stable Fedora release and compare it with the pinned baseline before promoting the change.
+A Fedora 44-based image has now passed one UEFI smoke test. Keep Fedora + Lorax as the known-good technology-preview baseline while expanding runtime checks. Do not promote a new Fedora profile based on repository availability or metadata tests alone; verify package inputs, rebuild, boot and compare it with the baseline first.
 
 Do not combine three incompatible distribution stacks into one root filesystem. Reuse the best upstream technology at its intended boundary:
 
