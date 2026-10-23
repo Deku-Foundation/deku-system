@@ -1,0 +1,28 @@
+name: Repository checks
+
+on:
+  push:
+    branches: [main, "ci/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-and-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Check required design documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s README.md
+          test -s docs/build-pipeline.md
+          if grep -RInE '[[:blank:]]+$' --include='*.md' .; then
+            echo 'Trailing whitespace found in Markdown files.' >&2
+            exit 1
+          fi
+          echo 'Repository layout and Markdown whitespace checks passed.'
