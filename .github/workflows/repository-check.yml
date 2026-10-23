@@ -26,3 +26,25 @@ jobs:
             exit 1
           fi
           echo 'Repository layout and Markdown whitespace checks passed.'
+      - name: Check out pinned system profile
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: Deku-Foundation/deku-profiles
+          ref: 2924c0eabe745542f61985062ad164133e5e006f
+          path: deku-profiles
+          persist-credentials: false
+      - name: Check out pinned Rust validator
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: Deku-Foundation/deku-build
+          ref: 328eeaf49a23af96cf07b39fa51c35979ee61dc6
+          path: deku-build
+          persist-credentials: false
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Validate profile and Kickstart contract in Rust
+        working-directory: deku-build
+        run: |
+          cargo run --locked -- validate-profile \
+            "$GITHUB_WORKSPACE/deku-profiles/profiles/minimal-x86_64/profile.json" \
+            "$GITHUB_WORKSPACE/kickstart/deku-minimal-live.ks"
