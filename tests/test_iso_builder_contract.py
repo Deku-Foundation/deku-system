@@ -73,7 +73,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
     def test_privileged_builder_has_no_checkout_credentials_or_host_network(self):
         self.assertEqual(self.workflow.count("persist-credentials: false"), 3)
         self.assertNotIn("--network=host", self.workflow)
-        self.assertIn("permissions:\\n  contents: read", self.workflow)
+        self.assertIn("permissions:\n  contents: read", self.workflow)
 
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
