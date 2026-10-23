@@ -36,6 +36,10 @@ dracut-network
 dracut-config-generic
 dracut-live
 NetworkManager
+grub2-pc
+grub2-pc-modules
+grub2-tools
+grub2-tools-extra
 livesys-scripts
 anaconda
 anaconda-live
