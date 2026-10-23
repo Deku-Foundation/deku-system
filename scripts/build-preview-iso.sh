@@ -13,11 +13,46 @@ if [[ "$(id -u)" -ne 0 ]]; then
   echo "ERROR: this experimental builder must run as root inside an isolated disposable build VM/container." >&2
   exit 2
 fi
-for tool in livemedia-creator lorax rpm sha256sum; do
+for tool in livemedia-creator lorax rpm sha256sum python3; do
   command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: required tool missing: $tool" >&2; exit 2; }
 done
 [[ -f "$KICKSTART" ]] || { echo "ERROR: Kickstart not found: $KICKSTART" >&2; exit 2; }
 [[ -f "$PROFILE" ]] || { echo "ERROR: profile not found: $PROFILE" >&2; exit 2; }
+
+python3 - "$PROFILE" "$KICKSTART" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+profile_path, kickstart_path = map(Path, sys.argv[1:])
+profile = json.loads(profile_path.read_text(encoding="utf-8"))
+kickstart = kickstart_path.read_text(encoding="utf-8")
+if profile.get("schema_version") != 1:
+    raise SystemExit("ERROR: unsupported profile schema_version")
+if profile.get("target", {}).get("architecture") != "x86_64":
+    raise SystemExit("ERROR: this builder only accepts the x86_64 profile")
+if "uefi" not in profile.get("target", {}).get("firmware", []):
+    raise SystemExit("ERROR: profile must declare UEFI support")
+bootstrap = profile.get("bootstrap", {})
+if bootstrap.get("distribution") != "fedora" or bootstrap.get("release") != "44":
+    raise SystemExit("ERROR: builder only accepts the explicitly reviewed Fedora 44 bootstrap")
+if bootstrap.get("independent_deku_rootfs") is not False:
+    raise SystemExit("ERROR: technology-preview profile must not claim an independent Deku root filesystem")
+match = re.search(r"(?ms)^%packages\s*\n(.*?)^%end\s*$", kickstart)
+if not match:
+    raise SystemExit("ERROR: Kickstart has no valid %packages section")
+listed = {
+    line.strip().split()[0]
+    for line in match.group(1).splitlines()
+    if line.strip() and not line.lstrip().startswith(("#", "@", "-"))
+}
+required = set(profile.get("package_selection", []))
+missing = sorted(required - listed)
+if missing:
+    raise SystemExit("ERROR: profile packages missing from Kickstart: " + ", ".join(missing))
+print(f"Validated profile {profile.get('profile_id')} with {len(required)} explicit package selections.")
+PY
 
 rm -rf "$RESULT_DIR"
 mkdir -p "$OUT_DIR" "$WORK_DIR"
@@ -35,6 +70,7 @@ rm -f "$OUT_DIR"/*.iso "$OUT_DIR"/*.sha256 "$OUT_DIR"/*.txt "$OUT_DIR"/*.log
   echo "lorax_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}\n' lorax 2>/dev/null || true)"
   echo "kickstart_sha256=$(sha256sum "$KICKSTART" | cut -d' ' -f1)"
   echo "profile_sha256=$(sha256sum "$PROFILE" | cut -d' ' -f1)"
+  echo "profile_commit=${PROFILE_SHA:-unknown}"
   echo
   echo "[builder package inventory]"
   rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' | sort
