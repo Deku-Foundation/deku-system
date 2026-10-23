@@ -159,7 +159,7 @@ impl Checker {
                 .rev()
                 .find_map(|scope| scope.get(name))
                 .map(|binding| binding.value_type)
-                .ok_or_else(|| type_error(expression.span, format!("المتغير «{name}» غير معرّف")),
+                .ok_or_else(|| type_error(expression.span, format!("المتغير «{name}» غير معرّف"))),
             ExprKind::Unary { operator, right } => {
                 let actual = self.expression_type(right)?;
                 let (expected, result) = match operator {
