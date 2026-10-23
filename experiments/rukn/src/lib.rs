@@ -46,7 +46,7 @@ mod tests {
             let mut source = String::new();
             let count = (state as usize % 48) + 1;
             for _ in 0..count {
-                state = state.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+                state = state\n                    .wrapping_mul(6_364_136_223_846_793_005)\n                    .wrapping_add(1);
                 source.push_str(atoms[(state as usize >> 17) % atoms.len()]);
                 if state & 3 == 0 {
                     source.push(' ');
