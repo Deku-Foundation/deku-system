@@ -1,10 +1,12 @@
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parents[1]))
 from scripts.write_provenance import PREDICATE_TYPE, build_statement
 
 
