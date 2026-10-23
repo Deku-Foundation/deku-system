@@ -48,6 +48,15 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         required = {"kernel", "kernel-modules", "dracut-network", "dracut-config-generic", "dracut-live", "NetworkManager"}
         self.assertTrue(required <= self.packages, f"missing packages: {sorted(required - self.packages)}")
 
+    def test_boot_acceptance_script_checks_runtime_contract(self):
+        self.assertIn("deku-boot-acceptance.sh", self.kickstart)
+        self.assertIn("After=NetworkManager.service systemd-user-sessions.service", self.kickstart)
+        self.assertIn("DEKU_BOOT_FAIL:", self.kickstart)
+        self.assertIn("check package-manifest test -s /etc/deku-package-manifest.txt", self.kickstart)
+        self.assertIn("systemctl is-active --quiet NetworkManager", self.kickstart)
+        self.assertIn("systemctl is-enabled --quiet sshd", self.kickstart)
+        self.assertIn("/sys/fs/selinux/enforce", self.kickstart)
+
     def test_boot_marker_unit_has_no_target_ordering_cycle(self):
         self.assertIn("WantedBy=multi-user.target", self.kickstart)
         self.assertIn("After=systemd-user-sessions.service", self.kickstart)
