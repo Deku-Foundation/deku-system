@@ -4,6 +4,8 @@ use crate::ast::{BinaryOp, Expr, ExprKind, Literal, Stmt, StmtKind, UnaryOp};
 use crate::diagnostic::{Diagnostic, Phase, Span};
 
 pub const DEFAULT_STEP_LIMIT: u64 = 1_000_000;
+const MAX_TEXT_BYTES: usize = 256 * 1024;
+const MAX_OUTPUT_BYTES: usize = 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Value {
@@ -46,6 +48,7 @@ pub fn execute_with_step_limit(
     let mut interpreter = Interpreter {
         scopes: vec![BTreeMap::new()],
         output: Vec::new(),
+        output_bytes: 0,
         steps: 0,
         step_limit,
     };
@@ -56,6 +59,7 @@ pub fn execute_with_step_limit(
 struct Interpreter {
     scopes: Vec<BTreeMap<String, Binding>>,
     output: Vec<String>,
+    output_bytes: usize,
     steps: u64,
     step_limit: u64,
 }
@@ -115,10 +119,7 @@ impl Interpreter {
                     format!("المتغير «{name}» غير معرّف"),
                 ))
             }
-            StmtKind::Print(value) => {
-                self.output.push(self.evaluate(value)?.display());
-                Ok(())
-            }
+            StmtKind::Print(value) => self.print_value(value, statement.span),
             StmtKind::If {
                 condition,
                 then_branch,
@@ -249,7 +250,17 @@ impl Interpreter {
             (Val::Integer(a), Op::Remainder, Val::Integer(b)) => {
                 checked_integer(a.checked_rem(b), span, "باقي القسمة")
             }
-            (Val::Text(a), Op::Add, Val::Text(b)) => Ok(Val::Text(a + &b)),
+            (Val::Text(a), Op::Add, Val::Text(b)) => {
+                let length = a.len().saturating_add(b.len());
+                if length > MAX_TEXT_BYTES {
+                    Err(runtime_error(
+                        span,
+                        format!("تجاوز النص حد الحجم البالغ {MAX_TEXT_BYTES} بايت"),
+                    ))
+                } else {
+                    Ok(Val::Text(a + &b))
+                }
+            }
             (Val::Integer(a), Op::Equal, Val::Integer(b)) => Ok(Val::Boolean(a == b)),
             (Val::Integer(a), Op::NotEqual, Val::Integer(b)) => Ok(Val::Boolean(a != b)),
             (Val::Boolean(a), Op::Equal, Val::Boolean(b)) => Ok(Val::Boolean(a == b)),
@@ -267,6 +278,24 @@ impl Interpreter {
                 format!("أنواع القيم غير متوافقة مع العامل {operator:?}"),
             )),
         }
+    }
+
+    fn print_value(&mut self, expression: &Expr, span: Span) -> Result<(), Diagnostic> {
+        let rendered = self.evaluate(expression)?.display();
+        let next_size = self
+            .output_bytes
+            .checked_add(rendered.len())
+            .and_then(|size| size.checked_add(1))
+            .unwrap_or(usize::MAX);
+        if next_size > MAX_OUTPUT_BYTES {
+            return Err(runtime_error(
+                span,
+                format!("تجاوز إخراج البرنامج الحد البالغ {MAX_OUTPUT_BYTES} بايت"),
+            ));
+        }
+        self.output_bytes = next_size;
+        self.output.push(rendered);
+        Ok(())
     }
 
     fn consume_step(&mut self, span: Span) -> Result<(), Diagnostic> {
@@ -335,6 +364,23 @@ mod tests {
     fn boolean_operators_short_circuit() {
         let source = "اطبع(خطأ و (1 / 0 == 0))\nاطبع(صح أو (1 / 0 == 0))";
         assert_eq!(run(source).unwrap(), vec!["خطأ", "صح"]);
+    }
+
+    #[test]
+    fn string_concatenation_has_a_size_limit() {
+        let source = "دع س = \"x\"\nدع عدد = 0\nطالما عدد < 20\nس = س + س\nعدد = عدد + 1\nنهاية";
+        let error = run(&source).unwrap_err();
+        assert!(error.message.contains("حد الحجم"));
+    }
+
+    #[test]
+    fn total_printed_output_has_a_size_limit() {
+        let large = "x".repeat(120_000);
+        let source = format!(
+            "دع نص = \"{large}\"\nدع عدد = 0\nطالما عدد < 10\nاطبع(نص)\nعدد = عدد + 1\nنهاية"
+        );
+        let error = run(&source).unwrap_err();
+        assert!(error.message.contains("إخراج البرنامج"));
     }
 
     #[test]
