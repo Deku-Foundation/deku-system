@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-build
-          ref: 584d02abe17d35720cf75a520c370bcc72f65d0a
+          ref: 9bc9426cb685f91b46af46237b97d03c2c7abf34
           path: deku-build
           persist-credentials: false
       - name: Install Rust toolchain
