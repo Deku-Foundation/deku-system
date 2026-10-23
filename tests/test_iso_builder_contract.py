@@ -62,7 +62,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertIn("systemd-user-sessions.service", self.kickstart)
         self.assertNotIn("After=multi-user.target", self.kickstart)
         self.assertIn("DEKU_BOOT_OK:minimal-x86_64", self.kickstart)
-        self.assertIn("scripts/write-provenance.py", self.workflow)
+        self.assertIn("scripts/write_provenance.py", self.workflow)
         self.assertIn("--timeout 420", self.workflow)
 
     def test_builder_fails_closed_on_missing_boot_packages(self):
