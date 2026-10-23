@@ -103,7 +103,8 @@ SCRIPT
 cat > /etc/systemd/system/deku-boot-marker.service <<'EOF'
 [Unit]
 Description=Deku Linux disposable VM boot acceptance checks
-After=NetworkManager.service systemd-user-sessions.service
+After=systemd-user-sessions.service
+After=NetworkManager.service
 Wants=NetworkManager.service
 ConditionPathExists=/dev/ttyS0
 
