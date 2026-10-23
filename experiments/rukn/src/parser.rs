@@ -2,13 +2,25 @@ use crate::ast::{BinaryOp, Expr, ExprKind, Literal, Stmt, StmtKind, UnaryOp};
 use crate::diagnostic::{Diagnostic, Phase, Span};
 use crate::token::{Token, TokenKind};
 
+const MAX_SYNTAX_DEPTH: usize = 128;
+
 pub fn parse(tokens: Vec<Token>) -> Result<Vec<Stmt>, Diagnostic> {
-    Parser { tokens, current: 0 }.program()
+    Parser {
+        tokens,
+        current: 0,
+        block_depth: 0,
+        expression_depth: 0,
+        unary_depth: 0,
+    }
+    .program()
 }
 
 struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    block_depth: usize,
+    expression_depth: usize,
+    unary_depth: usize,
 }
 
 impl Parser {
@@ -89,6 +101,18 @@ impl Parser {
     }
 
     fn block(&mut self, stop_on_else: bool) -> Result<Vec<Stmt>, Diagnostic> {
+        if self.block_depth >= MAX_SYNTAX_DEPTH {
+            return Err(self.error(format!(
+                "تجاوز تداخل الكتل الحد المسموح ({MAX_SYNTAX_DEPTH})"
+            )));
+        }
+        self.block_depth += 1;
+        let result = self.block_inner(stop_on_else);
+        self.block_depth -= 1;
+        result
+    }
+
+    fn block_inner(&mut self, stop_on_else: bool) -> Result<Vec<Stmt>, Diagnostic> {
         let mut statements = Vec::new();
         self.skip_newlines();
         loop {
@@ -105,7 +129,15 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, Diagnostic> {
-        self.or()
+        if self.expression_depth >= MAX_SYNTAX_DEPTH {
+            return Err(self.error(format!(
+                "تجاوز تداخل التعبيرات الحد المسموح ({MAX_SYNTAX_DEPTH})"
+            )));
+        }
+        self.expression_depth += 1;
+        let result = self.or();
+        self.expression_depth -= 1;
+        result
     }
 
     fn or(&mut self) -> Result<Expr, Diagnostic> {
@@ -207,32 +239,43 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Result<Expr, Diagnostic> {
-        if self.match_kind(&TokenKind::Minus) {
-            let span = self.previous().span;
-            let right = self.unary()?;
-            return Ok(Expr {
-                kind: ExprKind::Unary {
-                    operator: UnaryOp::Negate,
-                    right: Box::new(right),
-                },
+        let operator = if self.match_kind(&TokenKind::Minus) {
+            Some((UnaryOp::Negate, self.previous().span))
+        } else if self.match_kind(&TokenKind::Not) {
+            Some((UnaryOp::Not, self.previous().span))
+        } else {
+            None
+        };
+
+        let Some((operator, span)) = operator else {
+            return self.primary();
+        };
+
+        if self.unary_depth >= MAX_SYNTAX_DEPTH {
+            return Err(Diagnostic::new(
+                Phase::Syntax,
                 span,
-            });
+                format!("تجاوز تداخل العوامل الأحادية الحد المسموح ({MAX_SYNTAX_DEPTH})"),
+            ));
         }
-        if self.match_kind(&TokenKind::Not) {
-            let span = self.previous().span;
-            let right = self.unary()?;
-            return Ok(Expr {
-                kind: ExprKind::Unary {
-                    operator: UnaryOp::Not,
-                    right: Box::new(right),
-                },
-                span,
-            });
-        }
-        self.primary()
+        self.unary_depth += 1;
+        let right = self.unary();
+        self.unary_depth -= 1;
+        let right = right?;
+
+        Ok(Expr {
+            kind: ExprKind::Unary {
+                operator,
+                right: Box::new(right),
+            },
+            span,
+        })
     }
 
     fn primary(&mut self) -> Result<Expr, Diagnostic> {
+        if self.check(&TokenKind::Eof) {
+            return Err(self.error("انتهى الملف بينما كان التعبير ينتظر قيمة"));
+        }
         let token = self.advance().clone();
         let kind = match token.kind {
             TokenKind::Integer(value) => ExprKind::Literal(Literal::Integer(value)),
@@ -346,6 +389,29 @@ mod tests {
     fn parses_nested_blocks_and_operator_precedence() {
         let tokens = lex("دع س = 2 + 3 * 4\nإذا س > 10\nاطبع(س)\nنهاية").unwrap();
         assert!(parse(tokens).is_ok());
+    }
+
+    #[test]
+    fn rejects_unclosed_parentheses_without_recursing_forever() {
+        let tokens = lex("اطبع(").unwrap();
+        assert!(parse(tokens).is_err());
+    }
+
+    #[test]
+    fn rejects_excessively_nested_parentheses() {
+        let depth = MAX_SYNTAX_DEPTH + 1;
+        let source = format!("اطبع({}1{})", "(".repeat(depth), ")".repeat(depth));
+        let tokens = lex(&source).unwrap();
+        let error = parse(tokens).unwrap_err();
+        assert!(error.message.contains("تجاوز تداخل التعبيرات"));
+    }
+
+    #[test]
+    fn rejects_excessively_nested_unary_operators() {
+        let source = format!("اطبع({}صح)", "ليس ".repeat(MAX_SYNTAX_DEPTH + 1));
+        let tokens = lex(&source).unwrap();
+        let error = parse(tokens).unwrap_err();
+        assert!(error.message.contains("تجاوز تداخل العوامل الأحادية"));
     }
 
     #[test]
