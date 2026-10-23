@@ -1,8 +1,9 @@
 use std::env;
 use std::fs;
+use std::io::Read;
 use std::process::ExitCode;
 
-use rukn::{Diagnostic, Phase, Span, check, run};
+use rukn::{Diagnostic, MAX_SOURCE_BYTES, Phase, Span, check, run};
 
 fn main() -> ExitCode {
     match entry() {
@@ -60,11 +61,35 @@ fn entry() -> Result<(), Diagnostic> {
         ));
     }
 
-    let source = fs::read_to_string(&path).map_err(|error| {
+    let file = fs::File::open(&path).map_err(|error| {
         Diagnostic::new(
             Phase::Io,
             Span::new(1, 1),
-            format!("تعذر قراءة الملف «{path}»: {error}"),
+            format!("تعذر فتح الملف «{path}»: {error}"),
+        )
+    })?;
+    let mut bytes = Vec::new();
+    file.take((MAX_SOURCE_BYTES + 1) as u64)
+        .read_to_end(&mut bytes)
+        .map_err(|error| {
+            Diagnostic::new(
+                Phase::Io,
+                Span::new(1, 1),
+                format!("تعذرت قراءة الملف «{path}»: {error}"),
+            )
+        })?;
+    if bytes.len() > MAX_SOURCE_BYTES {
+        return Err(Diagnostic::new(
+            Phase::Io,
+            Span::new(1, 1),
+            format!("تجاوز الملف حد الحجم البالغ {MAX_SOURCE_BYTES} بايت"),
+        ));
+    }
+    let source = String::from_utf8(bytes).map_err(|error| {
+        Diagnostic::new(
+            Phase::Io,
+            Span::new(1, 1),
+            format!("الملف «{path}» ليس UTF-8 صالحًا: {error}"),
         )
     })?;
 
