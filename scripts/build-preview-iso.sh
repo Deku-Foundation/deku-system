@@ -51,6 +51,12 @@ required = set(profile.get("package_selection", []))
 missing = sorted(required - listed)
 if missing:
     raise SystemExit("ERROR: profile packages missing from Kickstart: " + ", ".join(missing))
+required_live = {"grub2-pc", "grub2-pc-modules", "grub2-tools", "grub2-efi-x64", "efibootmgr", "dracut-live", "dracut-config-generic"}
+missing_live = sorted(required_live - listed)
+if missing_live:
+    raise SystemExit("ERROR: Kickstart omits required live-image/bootloader packages: " + ", ".join(missing_live))
+if "After=multi-user.target" in kickstart:
+    raise SystemExit("ERROR: boot marker service must not order itself after multi-user.target")
 print(f"Validated profile {profile.get('profile_id')} with {len(required)} explicit package selections.")
 PY
 
@@ -66,7 +72,7 @@ rm -f "$OUT_DIR"/*.iso "$OUT_DIR"/*.sha256 "$OUT_DIR"/*.txt "$OUT_DIR"/*.log
   echo "firmware_target=UEFI-first"
   echo "git_sha=${GITHUB_SHA:-unknown}"
   echo "workflow_run_id=${GITHUB_RUN_ID:-manual}"
-  echo "builder_fedora_release=$(rpm -E %fedora)"
+  echo "builder_image=${BUILDER_IMAGE_DIGEST:-unknown}"\n  echo "builder_fedora_release=$(rpm -E %fedora)"
   echo "lorax_version=$(rpm -q --qf '%{VERSION}-%{RELEASE}\n' lorax 2>/dev/null || true)"
   echo "kickstart_sha256=$(sha256sum "$KICKSTART" | cut -d' ' -f1)"
   echo "profile_sha256=$(sha256sum "$PROFILE" | cut -d' ' -f1)"
