@@ -7,8 +7,6 @@ on:
       - "kickstart/**"
       - "scripts/build-preview-iso.sh"
       - "scripts/write_provenance.py"
-      - "tests/test_iso_builder_contract.py"
-      - "tests/test_build_provenance.py"
       - ".github/workflows/build-preview-iso.yml"
   workflow_dispatch:
 
