@@ -1,0 +1,18 @@
+[package]
+name = "rukn"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "Stage-0 interpreter prototype for the Rukn Arabic-first programming language"
+repository = "https://github.com/Deku-Foundation/deku-system"
+readme = "README.md"
+
+[dependencies]
+unicode-ident = "1.0"
+unicode-normalization = "0.1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
