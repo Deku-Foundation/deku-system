@@ -2,7 +2,7 @@ name: Rukn language checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'language/**']
     paths:
       - "experiments/rukn/**"
       - ".github/workflows/rukn.yml"
