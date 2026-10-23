@@ -78,10 +78,7 @@ impl Checker {
                     .find_map(|scope| scope.get(name))
                     .copied()
                     .ok_or_else(|| {
-                        type_error(
-                            statement.span,
-                            format!("المتغير «{name}» غير معرّف"),
-                        )
+                        type_error(statement.span, format!("المتغير «{name}» غير معرّف"))
                     })?;
                 if !binding.mutable {
                     return Err(type_error(
@@ -163,10 +160,7 @@ impl Checker {
                 .find_map(|scope| scope.get(name))
                 .map(|binding| binding.value_type)
                 .ok_or_else(|| {
-                    type_error(
-                        expression.span,
-                        format!("المتغير «{name}» غير معرّف"),
-                    )
+                    type_error(expression.span, format!("المتغير «{name}» غير معرّف"))
                 }),
             ExprKind::Unary { operator, right } => {
                 let actual = self.expression_type(right)?;
