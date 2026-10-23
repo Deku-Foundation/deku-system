@@ -101,7 +101,8 @@ jobs:
           python3 deku-tests/tools/boot_smoke.py \
             --iso "$ISO" \
             --sha256 "$SHA256" \
-            --firmware "$FIRMWARE" \
+            --firmware "$OVMF_CODE" \
+            --firmware-vars "$OVMF_VARS" \
             --marker "DEKU_BOOT_OK:minimal-x86_64" \
             --timeout 300 \
             --evidence-dir deku-system/artifacts/boot-test
