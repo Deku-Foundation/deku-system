@@ -62,6 +62,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-system-x86 ovmf
+      - name: Prepare generated artifact permissions for host-side boot test
+        run: |
+          # The privileged container creates root-owned output files. Restore the
+          # runner user ownership before the unprivileged QEMU harness writes evidence.
+          sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts
       - name: Boot ISO in disposable UEFI QEMU
         run: |
           ISO="deku-system/artifacts/deku-linux-technology-preview-x86_64.iso"
