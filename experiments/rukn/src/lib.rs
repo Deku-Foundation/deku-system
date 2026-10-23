@@ -8,6 +8,7 @@ mod typechecker;
 
 pub use diagnostic::{Diagnostic, Phase, Span};
 pub use interpreter::DEFAULT_STEP_LIMIT;
+pub use lexer::MAX_SOURCE_BYTES;
 
 /// Parse a source file without executing it.
 pub fn check(source: &str) -> Result<(), Diagnostic> {
