@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: build-preview-iso-${{ github.ref }}
+  group: build-preview-iso-v2-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
