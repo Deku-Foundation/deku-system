@@ -125,6 +125,13 @@ jobs:
             --marker "DEKU_BOOT_OK:minimal-x86_64" \
             --timeout 420 \
             --evidence-dir deku-system/artifacts/boot-test
+      - name: Extract and validate installed RPM inventory from serial evidence
+        if: success()
+        run: |
+          python3 deku-system/scripts/extract_target_package_manifest.py \
+            --serial-log deku-system/artifacts/boot-test/serial.log \
+            --output deku-system/artifacts/target-package-nevra.txt \
+            --build-manifest deku-system/artifacts/build-manifest.txt
       - name: Generate unsigned in-toto build statement
         if: always()
         env:
