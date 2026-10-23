@@ -42,6 +42,7 @@ Do not combine three incompatible distribution stacks into one root filesystem. 
 - Fedora `livemedia-creator` documentation: https://github.com/weldr/lorax/blob/master/docs/livemedia-creator.rst
 - NixOS custom ISO guide: https://nix.dev/tutorials/nixos/building-bootable-iso-image
 - Void live-image builder: https://github.com/void-linux/void-mklive
+- QEMU UEFI firmware mapping (split code/NVRAM pflash): https://github.com/qemu/qemu/blob/master/docs/interop/firmware.json
 
 ## Current limitation
 
