@@ -19,6 +19,12 @@ A schema-v1 manifest records:
 
 The validator rejects unknown fields, duplicate JSON keys and package names, unsupported architectures/profiles, unpinned revisions, noncanonical digests, malformed versions and over-sized JSON. It never executes commands from the manifest. The example digests are **fixtures only**, not references to real published artifacts.
 
+## Experimental ISO builder
+
+The `kickstart/deku-minimal-live.ks` and `scripts/build-preview-iso.sh` files define a first Fedora 44-based live-image experiment. The `Build experimental ISO` workflow runs only on pushes to `dev` that touch the builder files or by manual dispatch; it is deliberately not triggered by pull requests and receives no secrets because the upstream image builder needs elevated mount privileges. The job uses a disposable GitHub-hosted runner and an ephemeral container. Review the workflow's privilege boundary before adapting it to another runner.
+
+This is not a supported Deku ISO. The Kickstart and builder are unproven until the workflow finishes successfully and the resulting artifact passes the separate QEMU UEFI boot test. A successful build without boot evidence is not acceptance. The profile uses Fedora 44 as a temporary bootstrap and does not establish an independent Deku root filesystem.
+
 ## Run validation
 
 With Python 3.12 or newer:
