@@ -1,26 +1,54 @@
-# Deku Linux build system
+# Deku System Composition
 
-This repository will contain the tooling that assembles packages and, later, bootable images from reviewed inputs.
+Deku System is intended to assemble verified native packages and, later, bootable system images from reviewed, pinned inputs.
 
-## Status
+## Current status
 
-Bootstrap stage. There is no supported image builder, ISO, or release pipeline yet.
+**Prototype stage.** The repository now contains a metadata-only system composition manifest validator and example fixture. It does not download package artifacts, execute build commands, assemble a root filesystem, produce an initramfs, create an ISO, sign a release, or publish images. There is no supported image builder or release pipeline yet.
 
-## Design constraints
+## Manifest contract
 
-- Start with a minimal, auditable build pipeline before attempting full distribution images.
-- Run untrusted build steps in isolated, unprivileged environments.
-- Pin source inputs and record exact versions, hashes, toolchain versions, and build configuration.
-- Keep build execution separate from signing and publishing credentials.
-- Add tests for clean builds, failure handling, and artifact inspection.
-- Do not claim reproducible builds until independent rebuilds have been compared.
+A schema-v1 manifest records:
 
-## Planned milestones
+- A release identifier and target architecture.
+- The initial `kde-plasma` system profile.
+- Immutable base and kernel revisions, each accompanied by a source digest.
+- Catalog and system-configuration digests.
+- The build toolchain identifier.
+- A bounded package set with exact versions, architecture compatibility and SHA-256 artifact digests.
 
-1. Document the target platform and build threat model.
-2. Compare mature upstream build approaches and record an ADR.
-3. Build one harmless test artifact in CI.
-4. Add provenance and independent rebuild checks.
-5. Only then prototype a bootable image.
+The validator rejects unknown fields, duplicate JSON keys and package names, unsupported architectures/profiles, unpinned revisions, noncanonical digests, malformed versions and over-sized JSON. It never executes commands from the manifest. The example digests are **fixtures only**, not references to real published artifacts.
 
-Architecture decisions remain proposals until measured and reviewed.
+## Run validation
+
+With Python 3.12 or newer:
+
+```sh
+python -m unittest discover -s tests -v
+PYTHONPATH=. python -m deku_system.cli examples/system-manifest.json
+```
+
+A successful validation means the metadata conforms to the schema and basic consistency rules. It is not evidence that the input artifacts exist, their publisher is authenticated, a root filesystem can be assembled, or an image can boot.
+
+## Architecture constraints
+
+- Keep manifest parsing separate from acquisition, building, signing and publishing.
+- Pin source commits, artifact digests, configuration and toolchain before attempting assembly.
+- Fetch and verify inputs before entering a non-root, disposable, resource-limited build environment with network access disabled during build steps.
+- Do not let recipes or manifest values become shell commands.
+- Keep release-signing keys outside builders and source control.
+- Do not introduce host-changing workflows until an image-build backend, SBOM/provenance, signing and recovery tests are implemented.
+
+## Open design decision: ownership of the system root
+
+Before choosing how updates switch the live host system, compare a generation-based root design with an image-based approach such as OSTree/bootc in disposable VMs. The comparison must include crash consistency, bootloader and kernel integration, `/etc` merge rules, disk-space limits, upgrades, recovery, and rollback. Deku should select one transaction owner for the system root rather than stacking competing managers over the same paths.
+
+## Acceptance gates before an ISO
+
+1. Validate and authenticate all artifact/repository metadata.
+2. Assemble a minimal root filesystem in an isolated worker using verified inputs.
+3. Emit machine-readable provenance, SBOM and signed output metadata.
+4. Test independent rebuilds for selected components.
+5. Boot clean installation images in a disposable VM.
+6. Test upgrades, interrupted builds/updates, previous-kernel recovery and rollback.
+7. Publish checksums, signatures, sources, known limitations and test evidence.
