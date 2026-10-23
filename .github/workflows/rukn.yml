@@ -34,14 +34,14 @@ jobs:
       - name: Check formatting
         run: cargo fmt --manifest-path experiments/rukn/Cargo.toml -- --check
       - name: Run Clippy with warnings denied
-        run: cargo clippy --manifest-path experiments/rukn/Cargo.toml --all-targets -- -D warnings
+        run: cargo clippy --locked --manifest-path experiments/rukn/Cargo.toml --all-targets -- -D warnings
       - name: Run unit tests
-        run: cargo test --manifest-path experiments/rukn/Cargo.toml
+        run: cargo test --locked --manifest-path experiments/rukn/Cargo.toml
       - name: Verify the documented example output
         shell: bash
         run: |
           set -euo pipefail
-          actual="$(cargo run --quiet --manifest-path experiments/rukn/Cargo.toml -- run experiments/rukn/examples/مرحبا.rukn)"
+          actual="$(cargo run --locked --quiet --manifest-path experiments/rukn/Cargo.toml -- run experiments/rukn/examples/مرحبا.rukn)"
           expected="$(printf 'مرحبًا بك في ركن\nناتج الحساب:\n12\n42')"
           if [[ "$actual" != "$expected" ]]; then
             printf 'Unexpected output:\n%s\nExpected:\n%s\n' "$actual" "$expected"
