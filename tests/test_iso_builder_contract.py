@@ -14,7 +14,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         cls.kickstart = KICKSTART.read_text(encoding="utf-8")
         cls.builder = BUILDER.read_text(encoding="utf-8")
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
-        match = re.search(r"(?ms)^%packages\\s*\\n(.*?)^%end\\s*$", cls.kickstart)
+        match = re.search(r"(?ms)^%packages\s*\n(.*?)^%end\s*$", cls.kickstart)
         if match is None:
             raise AssertionError("Kickstart %packages section is missing")
         cls.package_entries = [
