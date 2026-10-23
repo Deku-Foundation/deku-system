@@ -16,6 +16,7 @@ impl Span {
 pub enum Phase {
     Lexical,
     Syntax,
+    Semantic,
     Runtime,
     Io,
 }
@@ -25,6 +26,7 @@ impl fmt::Display for Phase {
         f.write_str(match self {
             Self::Lexical => "التحليل المعجمي",
             Self::Syntax => "التحليل النحوي",
+            Self::Semantic => "التحقق الدلالي",
             Self::Runtime => "وقت التشغيل",
             Self::Io => "الإدخال والإخراج",
         })
