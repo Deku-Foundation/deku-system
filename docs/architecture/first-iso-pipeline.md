@@ -8,6 +8,9 @@ Prove bootability with a mature upstream base and image tool first. This is a te
 ## Tool evaluation and current proposal
 The current proposal in [ADR-0001](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/adr/0001-first-iso-and-rust-first-architecture.md) is to evaluate Fedora 44 plus Lorax/livemedia-creator for the first actual ISO, with Fedora 45 only after final repository and builder compatibility are verified. Lorax's documented `livemedia-creator --make-iso` path requires Anaconda install media, a Kickstart file and a suitable build environment; CI feasibility is a gate, not an assumption. Evaluate systemd/mkosi in parallel for disk/system-tree images, not as if it directly emits an ISO. If the prototype base is Void, use the Void-supported void-mklive/XBPS path instead. Pin tool and package inputs before implementation.
 
+
+As of 2026-10-23, Fedora 45 has not completed its final release gate; the Fedora project schedule still lists the release-party date for 30 October. Keep the first baseline on Fedora 44 rather than treating Fedora 45 beta content as a stable base. Revisit the version only after Fedora 45 Final is published and its release/update repositories are verified. Reference: https://rsvp.fedoraproject.org/releases/f45/.
+
 ## Current implementation and failure evidence
 
 The current workflow lives at `.github/workflows/build-preview-iso.yml` and runs only for selected builder-file changes on `dev` or manual dispatch. It checks out a pinned Fedora 44 container image and a pinned profile commit, then runs `livemedia-creator --make-iso --no-virt --iso-only` inside an ephemeral privileged container without host networking or secrets. It retains builder inventory, build logs and artifacts. The privilege boundary is acceptable only for a disposable GitHub-hosted runner; do not run this workflow's privileged container on a personal workstation.
