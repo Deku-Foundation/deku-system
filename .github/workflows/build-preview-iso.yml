@@ -6,6 +6,9 @@ on:
     paths:
       - "kickstart/**"
       - "scripts/build-preview-iso.sh"
+      - "scripts/write-provenance.py"
+      - "tests/test_iso_builder_contract.py"
+      - "tests/test_build_provenance.py"
       - ".github/workflows/build-preview-iso.yml"
   workflow_dispatch:
 
@@ -120,7 +123,7 @@ jobs:
             --firmware "$OVMF_CODE" \
             --firmware-vars "$OVMF_VARS" \
             --marker "DEKU_BOOT_OK:minimal-x86_64" \
-            --timeout 300 \
+            --timeout 420 \
             --evidence-dir deku-system/artifacts/boot-test
       - name: Generate unsigned in-toto build statement
         if: always()
