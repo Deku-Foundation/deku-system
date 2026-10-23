@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     fn block_bindings_do_not_escape_scope() {
-        let source = "إذا صح\nدع محلي = 1\nهاية\اطبع(محلي)";
+        let source = "إذا صح\nدع محلي = 1\nنهاية\nاطبع(محلي)";
         assert!(check_source(source).is_err());
     }
 }
