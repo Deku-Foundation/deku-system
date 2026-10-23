@@ -50,7 +50,8 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
 
     def test_boot_acceptance_script_checks_runtime_contract(self):
         self.assertIn("deku-boot-acceptance.sh", self.kickstart)
-        self.assertIn("After=NetworkManager.service systemd-user-sessions.service", self.kickstart)
+        self.assertIn("After=NetworkManager.service", self.kickstart)
+        self.assertIn("After=systemd-user-sessions.service", self.kickstart)
         self.assertIn("DEKU_BOOT_FAIL:", self.kickstart)
         self.assertIn("check package-manifest test -s /etc/deku-package-manifest.txt", self.kickstart)
         self.assertIn("DEKU_PACKAGE_MANIFEST_BEGIN", self.kickstart)
