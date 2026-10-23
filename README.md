@@ -49,6 +49,10 @@ A successful validation means the metadata conforms to the schema and basic cons
 
 Before choosing how updates switch the live host system, compare a generation-based root design with an image-based approach such as OSTree/bootc in disposable VMs. The comparison must include crash consistency, bootloader and kernel integration, `/etc` merge rules, disk-space limits, upgrades, recovery, and rollback. Deku should select one transaction owner for the system root rather than stacking competing managers over the same paths.
 
+## Native Deku architecture
+
+The Fedora 44 image is only a technology-preview test fixture. The production path is a Deku-owned package closure and root filesystem, built from reviewed/pinned components and assembled into media only after native package/repository contracts exist. See [native rootfs and ISO boundary](docs/architecture/native-rootfs-bootstrap.md) and [upstream builder comparison](docs/architecture/upstream-builder-comparison.md).
+
 ## Engineering references
 
 - [First ISO pipeline and tool evaluation](docs/architecture/first-iso-pipeline.md)
