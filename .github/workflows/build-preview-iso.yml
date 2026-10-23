@@ -6,7 +6,7 @@ on:
     paths:
       - "kickstart/**"
       - "scripts/build-preview-iso.sh"
-      - "scripts/write-provenance.py"
+      - "scripts/write_provenance.py"
       - "tests/test_iso_builder_contract.py"
       - "tests/test_build_provenance.py"
       - ".github/workflows/build-preview-iso.yml"
@@ -81,7 +81,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-tests
-          ref: 61d0758b006571f1fa944fdf6f50bb3584267232
+          ref: c9c4d0320ad26066fb751f0a21cbbea0c2e6a360
           path: deku-tests
           persist-credentials: false
       - name: Record immutable boot harness revision
@@ -136,7 +136,7 @@ jobs:
           DEKU_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DEKU_BUILDER_IMAGE: fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
         run: |
-          python3 deku-system/scripts/write-provenance.py \
+          python3 deku-system/scripts/write_provenance.py \
             --iso deku-system/artifacts/deku-linux-technology-preview-x86_64.iso \
             --manifest deku-system/artifacts/build-manifest.txt \
             --boot-result deku-system/artifacts/boot-test/boot-result.json \
