@@ -41,6 +41,10 @@ anaconda
 anaconda-live
 anaconda-install-env-deps
 grub2-efi-x64
+grub2-efi-x64-cdboot
+grub2-efi-x64-modules
+grub2-pc
+grub2-pc-modules
 shim-x64
 efibootmgr
 tar
@@ -58,7 +62,7 @@ EOF
 cat > /etc/systemd/system/deku-boot-marker.service <<'EOF'
 [Unit]
 Description=Deku Linux disposable VM boot acceptance marker
-After=multi-user.target
+After=systemd-user-sessions.service
 ConditionPathExists=/dev/ttyS0
 
 [Service]
