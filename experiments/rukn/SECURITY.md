@@ -25,7 +25,8 @@ Normative references:
 
 ## Runtime boundaries
 
-- The interpreter has a fixed default step budget to stop infinite loops; it does not enforce memory, output-size or wall-clock limits.
+- The lexer rejects source files above 256 KiB and more than 2,048 tokens; the parser limits block, parenthesized-expression and unary-operator nesting to 128 levels.
+- The interpreter has a fixed default step budget to stop infinite loops, caps individual text values at 256 KiB and total printed output at 1 MiB; it does not enforce a wall-clock timeout or a general process memory limit.
 - Integer operations are checked. Overflow and division by zero return diagnostics.
 - Static checking rejects undefined identifiers, incompatible types, invalid Boolean conditions and assignments to constants before execution.
 - Programs currently cannot open files, use the network, spawn processes or call native code.
@@ -34,7 +35,7 @@ Normative references:
 ## Supply-chain and build controls
 
 - Pin the Rust toolchain used for official releases.
-- Commit `Cargo.lock` before distributing Rukn binaries; the initial incubator does not yet ship a release lockfile.
+- The incubator now commits `Cargo.lock`, and Rukn CI uses `--locked` for Clippy, tests and example execution. Review dependency updates deliberately.
 - Run formatting, Clippy with warnings denied, unit tests, example-output tests and fuzz/property tests as the parser grows.
 - Publish checksums and attestations for release artifacts; a checksum alone is not publisher authentication.
 - Keep code-generation and release-signing credentials outside untrusted build steps.
