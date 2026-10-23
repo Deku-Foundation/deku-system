@@ -23,6 +23,12 @@ services --disabled="sshd" --enabled="NetworkManager,livesys,livesys-late"
 
 %packages
 @core
+systemd
+bash
+coreutils
+util-linux
+iproute
+iputils
 kernel
 kernel-modules
 kernel-modules-extra
