@@ -51,4 +51,4 @@ This prototype does not implement functions, user-defined types, modules, arrays
 4. Do not promise a native backend before its ABI, runtime and test matrix are specified.
 5. Keep the Rust Stage-0 implementation small enough to audit, and make every later bootstrap stage reproducible.
 
-See [the language specification](LANGUAGE-SPEC.md), [architecture](ARCHITECTURE.md), [Unicode security notes](SECURITY.md), [competitive research](RESEARCH.md), and [roadmap](ROADMAP.md).
+See the [language specification](LANGUAGE-SPEC.md), [design-decision register](DESIGN-DECISIONS.md), [architecture](ARCHITECTURE.md), [Unicode security notes](SECURITY.md), [competitive research](RESEARCH.md), [contribution guide](CONTRIBUTING.md), and [roadmap](ROADMAP.md).
