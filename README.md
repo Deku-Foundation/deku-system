@@ -23,7 +23,7 @@ The validator rejects unknown fields, duplicate JSON keys and package names, uns
 
 The `kickstart/deku-minimal-live.ks` and `scripts/build-preview-iso.sh` files define a first Fedora 44-based live-image experiment. The `Build experimental ISO` workflow runs only on pushes to `dev` that touch the builder files or by manual dispatch; it is deliberately not triggered by pull requests and receives no secrets because the upstream image builder needs elevated mount privileges. The job uses a disposable GitHub-hosted runner and an ephemeral container. Review the workflow's privilege boundary before adapting it to another runner.
 
-This is not a supported Deku ISO. The Kickstart and builder are unproven until the workflow finishes successfully and the resulting artifact passes the separate QEMU UEFI boot test. A successful build without boot evidence is not acceptance. The profile uses Fedora 44 as a temporary bootstrap and does not establish an independent Deku root filesystem.
+This is not a supported Deku ISO. The current implementation is a Fedora 44-based technology preview; it does not establish an independent Deku root filesystem, prove the native package manager, or justify a production readiness claim. The builder currently runs only on the ephemeral GitHub-hosted runner, without secrets, because it uses a privileged container for the no-virt image assembly path. Do not run the privileged build script directly on a personal workstation. A successful build without preserved boot evidence is not acceptance.
 
 ## Run validation
 
