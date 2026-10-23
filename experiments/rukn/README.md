@@ -37,7 +37,7 @@ The test suite and the executable are the source of truth for what this prototyp
 - `اطبع(...)`, `إذا ... / وإلا / نهاية`, and `طالما ... / نهاية`.
 - A static semantic pass for inferred integer, string and Boolean types.
 - UTF-8 source, NFC-normalized identifiers, and rejection of selected invisible direction/format controls.
-- Arabic diagnostics with source line and column, and a bounded interpreter step count.
+- Arabic diagnostics with source line and column, bounded source/token/parse-depth limits, checked arithmetic, bounded text/output sizes and a step count.
 
 ## Deliberate non-goals for Stage 0
 
