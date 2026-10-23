@@ -75,6 +75,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertNotIn("--network=host", self.workflow)
         self.assertIn("permissions:", self.workflow)
         self.assertIn("  contents: read", self.workflow)
+        self.assertIn("  contents: read", self.workflow)
 
     def test_builder_and_source_revisions_are_pinned(self):
         self.assertIn("fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80", self.workflow)
