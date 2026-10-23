@@ -89,7 +89,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertIn("  contents: read", self.workflow)
 
     def test_artifact_ownership_is_fixed_before_host_side_boot_evidence(self):
-        normalize = self.workflow.index("Prepare generated artifact permissions for host-side boot test")
+        normalize = self.workflow.index("Prepare generated artifact permissions for host-side checks")
         boot = self.workflow.index("Boot ISO in disposable UEFI QEMU")
         final_cleanup = self.workflow.index("Normalize artifact permissions")
         self.assertLess(normalize, boot, "root-owned container output must be writable before the harness starts")
@@ -118,7 +118,7 @@ class MinimalLiveIsoContractTests(unittest.TestCase):
         self.assertRegex(self.kickstart, r'services --disabled="[^"]*sshd')
 
     def test_profile_preflight_uses_pinned_locked_rust_dependencies(self):
-        self.assertIn("ref: 328eeaf49a23af96cf07b39fa51c35979ee61dc6", self.workflow)
+        self.assertIn("ref: 20bd35be9db6b99cf26bbfb6482914ec333a8ac5", self.workflow)
         self.assertIn("uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec", self.workflow)
         self.assertIn("toolchain: 1.99.1", self.workflow)
         self.assertIn("cargo run --locked -- validate-profile", self.workflow)
