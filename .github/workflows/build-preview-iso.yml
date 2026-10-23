@@ -40,7 +40,7 @@ jobs:
             -w /workspace/deku-system \
             fedora:44 bash -euxo pipefail -c '
               dnf -y install lorax lorax-lmc-novirt
-              ./scripts/build-preview-iso.sh
+              bash ./scripts/build-preview-iso.sh
             '
       - name: Upload ISO and evidence
         if: always()
