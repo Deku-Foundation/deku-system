@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-profiles
-          ref: 0ff3b0a7efabefc573cf8e4fad5dbaf4c2ad9d10
+          ref: 0b000f0ebfaa021fa0153cb306db61866024b70d
           path: deku-profiles
       - name: Build in disposable Fedora 44 container
         env:
@@ -39,8 +39,10 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           PROFILE_SHA="$(git -C deku-profiles rev-parse HEAD)"
-          docker run --rm --privileged --network=host \
-            -e GITHUB_SHA -e GITHUB_RUN_ID -e PROFILE_SHA="$PROFILE_SHA" \
+          docker run --rm --privileged \
+            -e GITHUB_SHA -e GITHUB_RUN_ID \
+            -e PROFILE_SHA="$PROFILE_SHA" \
+            -e BUILDER_IMAGE_DIGEST="fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace/deku-system \
             fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80 bash -euxo pipefail -c '
