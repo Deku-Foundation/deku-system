@@ -1,0 +1,58 @@
+name: Rukn language checks
+
+on:
+  push:
+    branches: [main, 'language/**']
+    paths:
+      - "experiments/rukn/**"
+      - ".github/workflows/rukn.yml"
+  pull_request:
+    paths:
+      - "experiments/rukn/**"
+      - ".github/workflows/rukn.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rukn-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Format, lint, test and verify examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path experiments/rukn/Cargo.toml -- --check
+      - name: Run Clippy with warnings denied
+        run: cargo clippy --locked --manifest-path experiments/rukn/Cargo.toml --all-targets -- -D warnings
+      - name: Run unit tests
+        run: cargo test --locked --manifest-path experiments/rukn/Cargo.toml
+      - name: Verify the documented example output
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(cargo run --locked --quiet --manifest-path experiments/rukn/Cargo.toml -- run experiments/rukn/examples/مرحبا.rukn)"
+          expected="$(printf 'مرحبًا بك في ركن\nناتج الحساب:\n12\n42')"
+          if [[ "$actual" != "$expected" ]]; then
+            printf 'Unexpected output:\n%s\nExpected:\n%s\n' "$actual" "$expected"
+            exit 1
+          fi
+      - name: Check the control-flow example
+        run: cargo run --quiet --manifest-path experiments/rukn/Cargo.toml -- check experiments/rukn/examples/تحكم.rukn
+      - name: Verify the invalid example fails
+        shell: bash
+        run: |
+          if cargo run --quiet --manifest-path experiments/rukn/Cargo.toml -- run experiments/rukn/examples/الأخطاء.rukn; then
+            echo "The intentionally invalid program unexpectedly succeeded."
+            exit 1
+          fi

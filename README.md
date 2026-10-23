@@ -52,3 +52,11 @@ Before choosing how updates switch the live host system, compare a generation-ba
 5. Boot clean installation images in a disposable VM.
 6. Test upgrades, interrupted builds/updates, previous-kernel recovery and rollback.
 7. Publish checksums, signatures, sources, known limitations and test evidence.
+
+## Experimental language work: Rukn
+
+The repository includes a temporary **Stage-0 prototype** for Rukn (رُكن), an Arabic-first programming language. It currently provides a Rust-hosted lexer, parser, static checks for a small type set, and a bounded interpreter. It is not a native compiler or a self-hosted language yet.
+
+Start with [the Rukn overview](experiments/rukn/README.md), then read the [language specification](experiments/rukn/LANGUAGE-SPEC.md), [architecture](experiments/rukn/ARCHITECTURE.md), [security notes](experiments/rukn/SECURITY.md), [research and positioning](experiments/rukn/RESEARCH.md), and [roadmap](experiments/rukn/ROADMAP.md).
+
+Rukn is incubated here temporarily; before a public alpha it should move to a dedicated repository with its own releases, issues and governance. No language feature is considered complete without tests and an updated specification.

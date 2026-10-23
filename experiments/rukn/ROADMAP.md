@@ -1,0 +1,63 @@
+# Rukn roadmap
+
+**Current milestone: Stage 0 — Rust-hosted reference interpreter.** Progress is measured by tests and user-visible behavior, not by the number of listed features.
+
+## Stage 0 — Language vertical slice
+
+- [x] Arabic-first lexer and reserved keywords.
+- [x] Unicode identifier support with NFC normalization.
+- [x] Arabic-Indic, Eastern Arabic/Persian and ASCII number literals with per-token digit-set consistency.
+- [x] Parser and AST for declarations, assignment, printing, conditionals and while loops.
+- [x] Static checking for the initial integer/text/Boolean type set.
+- [x] Checked integer arithmetic and structured diagnostics.
+- [x] Step budget for execution.
+- [ ] CI green on the pull request, including formatting and Clippy.
+- [x] Commit a dependency lockfile and require locked dependency resolution in CI.
+- [ ] Verify examples and negative examples in CI.
+- [ ] Review identifier and bidirectional-text rules with Arabic-speaking compiler/editor users.
+
+## Stage 1 — Specification and usability
+
+- Freeze the lexical/diagnostic contract for a 0.x release.
+- Define functions, return values, modules and explicit type annotations before implementing them.
+- Add parser/property fuzzing and diagnostic snapshot tests.
+- Define formatter rules, symbol-table inspection and an editor-facing diagnostic schema.
+- Add a terminology glossary reviewed by native Arabic technical contributors.
+- Add a test corpus for canonically equivalent identifiers and confusable/mixed-script warnings.
+
+**Exit gate:** grammar, semantic rules, tests and examples agree; malformed programs return diagnostics instead of panicking.
+
+## Stage 2 — Typed IR and bytecode
+
+- Design a typed IR with documented invariants and a printer/debug dump.
+- Lower source AST into IR and validate the IR independently.
+- Implement a bytecode VM or other execution layer with bounded recursion, allocation and output policy.
+- Test that interpreter and bytecode results agree on a shared conformance corpus.
+
+**Exit gate:** semantics remain stable across execution modes and error locations are preserved through lowering.
+
+## Stage 3 — Native compilation decision
+
+Benchmark candidate backends against a small, published corpus. Compare Cranelift and LLVM for target coverage, debug data, cross-compilation, startup time, binary size, toolchain integration and maintenance. Do not announce a native compiler until generated binaries pass semantic and platform tests.
+
+**Exit gate:** supported targets and ABI are documented, tests run on those targets, and build artifacts can be reproduced or deviations explained.
+
+## Stage 4 — Systems semantics
+
+Design and implement user-defined types, results/options, modules, memory model, ownership/borrowing (or an explicitly chosen alternative), and FFI constraints. Add static checks that prevent use-after-free and data races only after the model is formalized and independently reviewed.
+
+**Exit gate:** written memory model, negative compile tests, runtime tests, fuzzing, and a reviewed FFI/ABI specification.
+
+## Stage 5 — Bootstrap and self-hosting
+
+- Build a small, pinned Stage-0 compiler.
+- Implement the compiler in Rukn and compile it with Stage 0.
+- Recompile that source using the produced Stage-1 compiler.
+- Compare semantic outputs and artifacts in clean environments; explain every nondeterministic difference.
+- Keep a documented recovery path to the trusted Stage-0 compiler.
+
+**Exit gate:** automated bootstrap from source, reproducible input manifests, reviewed stage comparisons, and maintainers able to recover a working compiler from the documented seed.
+
+## Stage 6 — Ecosystem
+
+Only after core semantics stabilize: standard library, package manifest/lockfile, formatter, language server, syntax-highlighting packages, debugger hooks, cross compilation and release process. Reuse the compiler's semantic APIs rather than maintaining separate language parsers in each tool.
