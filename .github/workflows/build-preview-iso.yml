@@ -42,15 +42,35 @@ jobs:
               dnf -y install lorax lorax-lmc-novirt
               bash ./scripts/build-preview-iso.sh
             '
+      - name: Check out boot acceptance harness
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: Deku-Foundation/deku-tests
+          ref: main
+          path: deku-tests
+      - name: Install QEMU and UEFI firmware
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 ovmf
+      - name: Boot ISO in disposable UEFI QEMU
+        run: |
+          ISO="deku-system/artifacts/deku-linux-technology-preview-x86_64.iso"
+          SHA256="$(awk '{print $1}' "$ISO.sha256")"
+          FIRMWARE="$(find /usr/share/OVMF -maxdepth 1 -type f \\( -name 'OVMF_CODE.fd' -o -name 'OVMF_CODE_4M.fd' \\) -print | sort | head -n1)"
+          test -n "$FIRMWARE"
+          python3 deku-tests/tools/boot_smoke.py \
+            --iso "$ISO" \
+            --sha256 "$SHA256" \
+            --firmware "$FIRMWARE" \
+            --marker "DEKU_BOOT_OK:minimal-x86_64" \
+            --timeout 180 \
+            --evidence-dir deku-system/artifacts/boot-test
       - name: Upload ISO and evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: deku-linux-experimental-iso-${{ github.run_id }}
           path: |
-            deku-system/artifacts/*.iso
-            deku-system/artifacts/*.sha256
-            deku-system/artifacts/*.txt
-            deku-system/artifacts/*.log
+            deku-system/artifacts/**
           if-no-files-found: warn
           retention-days: 3
