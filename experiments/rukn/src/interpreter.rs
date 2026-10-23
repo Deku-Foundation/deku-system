@@ -36,10 +36,6 @@ struct Binding {
     mutable: bool,
 }
 
-pub fn execute(statements: &[Stmt]) -> Result<Vec<String>, Diagnostic> {
-    execute_with_step_limit(statements, DEFAULT_STEP_LIMIT)
-}
-
 pub fn execute_with_step_limit(
     statements: &[Stmt],
     step_limit: u64,
@@ -300,7 +296,7 @@ mod tests {
     use crate::parser::parse;
 
     fn run(source: &str) -> Result<Vec<String>, Diagnostic> {
-        execute(&parse(lex(source)?)?)
+        execute_with_step_limit(&parse(lex(source)?)?, DEFAULT_STEP_LIMIT)
     }
 
     #[test]
