@@ -61,7 +61,7 @@ Profile: minimal-x86_64
 Status: experimental; not an independent distribution
 EOF
 
-rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' | sort > /etc/deku-package-manifest.txt
+rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' | LC_ALL=C sort > /etc/deku-package-manifest.txt
 
 install -D -m 0755 /dev/stdin /usr/local/libexec/deku-boot-acceptance.sh <<'SCRIPT'
 #!/usr/bin/bash
@@ -84,6 +84,9 @@ check() {
 
 check release-metadata test -s /etc/deku-release
 check package-manifest test -s /etc/deku-package-manifest.txt
+printf 'DEKU_PACKAGE_MANIFEST_BEGIN\n'
+cat /etc/deku-package-manifest.txt
+printf 'DEKU_PACKAGE_MANIFEST_END\n'
 check network-manager systemctl is-active --quiet NetworkManager
 if systemctl is-enabled --quiet sshd; then
   fail sshd-enabled
