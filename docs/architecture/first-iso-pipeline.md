@@ -5,8 +5,8 @@ Status: plan for a technology-preview image; not a working ISO builder.
 ## Decision
 Prove bootability with a mature upstream base and image tool first. This is a technology preview, not proof that Deku's native package manager is ready or that the system is independently bootstrapped.
 
-## Tool evaluation
-Evaluate systemd/mkosi first for Fedora/Debian/Arch-style package ecosystems because it already builds images, supports QEMU workflows and uses existing package managers. If the selected prototype base is Void, use the Void-supported void-mklive/XBPS image path rather than pretending mkosi supports every ecosystem. Pin the exact tool version and record the decision in an ADR before implementation.
+## Tool evaluation and current proposal
+The current proposal in [ADR-0001](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/adr/0001-first-iso-and-rust-first-architecture.md) is to evaluate Fedora 44 plus Lorax/livemedia-creator for the first actual ISO, with Fedora 45 only after final repository and builder compatibility are verified. Lorax's documented `livemedia-creator --make-iso` path requires Anaconda install media, a Kickstart file and a suitable build environment; CI feasibility is a gate, not an assumption. Evaluate systemd/mkosi in parallel for disk/system-tree images, not as if it directly emits an ISO. If the prototype base is Void, use the Void-supported void-mklive/XBPS path instead. Pin tool and package inputs before implementation.
 
 ## Image stages
 1. Validate a declarative profile from deku-profiles.
