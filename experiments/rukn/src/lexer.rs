@@ -200,7 +200,7 @@ impl Scanner {
                     "النص غير مغلق قبل نهاية السطر",
                 ));
             }
-            if is_bidi_control(ch) {
+            if is_forbidden_control(ch) {
                 return Err(Diagnostic::new(
                     Phase::Lexical,
                     Span::new(self.line, self.column),
