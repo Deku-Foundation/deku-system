@@ -362,6 +362,12 @@ mod tests {
     }
 
     #[test]
+    fn recognizes_the_block_terminator_keyword() {
+        let tokens = lex("نهاية").unwrap();
+        assert!(matches!(tokens[0].kind, TokenKind::End));
+    }
+
+    #[test]
     fn lexes_arabic_keywords_and_identifiers() {
         let tokens = lex("دع العدد = ١٢\nاطبع(العدد)").unwrap();
         assert!(matches!(tokens[0].kind, TokenKind::Let));
