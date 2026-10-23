@@ -4,7 +4,9 @@ Status: engineering decision note, reviewed 2026-10-23. This is a comparison of 
 
 ## Recommendation
 
-A Fedora 44-based image has now passed one UEFI smoke test. Keep Fedora + Lorax as the known-good technology-preview baseline while expanding runtime checks. Do not promote a new Fedora profile based on repository availability or metadata tests alone; verify package inputs, rebuild, boot and compare it with the baseline first.
+**Do not use Fedora as Deku's runtime base.** The Fedora 44/Lorax image is a labelled boot-harness fixture only: it proves that the current UEFI/QEMU test path can observe a console marker, not that a native Deku system exists. Keep this fixture isolated from the future native package closure and never promote it as a Deku release.
+
+The production direction is a Deku-owned package closure and root filesystem assembled from reviewed, pinned components. Use upstream projects as implementation references and individually selected dependencies. First build one native package in a real unprivileged sandbox, authenticate a local repository, assemble a minimal rootfs, then use an image assembler only for boot media. Evaluate systemd/mkosi with a custom/prebuilt rootfs; it is not itself the package manager and does not imply Fedora is the base.
 
 Do not combine three incompatible distribution stacks into one root filesystem. Reuse the best upstream technology at its intended boundary:
 
@@ -16,9 +18,15 @@ Do not combine three incompatible distribution stacks into one root filesystem. 
 
 | Path | What it already does | What it means for Deku | Main caveat |
 |---|---|---|---|
-| Fedora Lorax / `livemedia-creator` | Uses Anaconda and Kickstart to create live ISOs, disk images and filesystem images. | Best fit for proving a Fedora-based UEFI preview while retaining Fedora's kernel, dracut, systemd, RPM and package metadata. | A privileged builder is required for the current containerized workflow; it is not an independent Deku rootfs. |
-| NixOS / Nix image generation | Builds custom ISO configurations from NixOS modules and a pinned Nixpkgs revision. | Strong reference for immutable inputs, declarative system composition and reproducible build graphs. | Choosing a NixOS rootfs would make NixOS the base distribution; it is not a drop-in ISO generator for a Fedora rootfs. |
-| Void `void-mklive` | Builds Void live ISOs and rootfs/platform images, including x86_64 and aarch64 variants. | A credible alternate base if Deku deliberately adopts XBPS and runit, with glibc/musl variants considered separately. | The upstream project warns that it is not guaranteed to work outside Void Linux or inside containers. Its package and service model differs from Fedora. |
+| Fedora Lorax / `livemedia-creator` | Mature live-media/installer implementation and useful reference for boot layout and installer testing. | Keep as a reference and isolated preview fixture only; it must not define the native target package closure. | Tight Fedora/Anaconda/RPM assumptions; privileged builder is a separate trust domain. |
+| Nix / Nixpkgs | Provides strong reference patterns for declarative inputs, pinned dependency graphs, sandboxed builds and independent rebuild comparison. | Borrow these properties for Deku's own manifest/build graph; NixOS itself is not the target runtime base. | Adopting NixOS modules and rootfs would be a separate architecture decision. |
+| Void `void-packages` / XBPS / `void-mklive` | Useful references for recipe phases, build options, binary repository mechanics, signatures and live-media composition. | Adapt selected concepts to a Deku-owned package contract; do not silently inherit XBPS or runit. | `void-mklive` expects the Void/XBPS ecosystem and is not a general-purpose Deku image backend. |
+
+## Independent native target
+
+The target runtime must be composed from a Deku-owned, locked package manifest and rootfs. Individually selected upstream components (Linux, glibc or musl, systemd or another init, GRUB/firmware, utilities) remain normal dependencies with explicit versions, hashes, licences and provenance. They do not make the distribution a derivative by themselves. A copied foreign rootfs, an inherited foreign package database, or a requirement to use another distribution's repositories at runtime would violate the independence goal.
+
+See the native architecture proposal in [deku-linux](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/architecture/native-distribution-architecture.md) and the implementation boundary in [native rootfs bootstrap](native-rootfs-bootstrap.md).
 
 ## What should be borrowed
 
