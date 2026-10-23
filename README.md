@@ -55,6 +55,8 @@ Before choosing how updates switch the live host system, compare a generation-ba
 - [Upstream image-builder comparison: Fedora, NixOS and Void](docs/architecture/upstream-builder-comparison.md)
 - [Rust-first/upstream-first architecture and release gates](https://github.com/Deku-Foundation/deku-linux/blob/main/docs/strategy/iso-build-gap-analysis.md)
 - [Experimental ISO build workflow](.github/workflows/build-preview-iso.yml)
+- [Experimental ISO pipeline security review](docs/security/iso-pipeline-review.md)
+- [Upstream image-builder comparison](docs/architecture/upstream-builder-comparison.md)
 
 ## Acceptance gates before a supported release
 
