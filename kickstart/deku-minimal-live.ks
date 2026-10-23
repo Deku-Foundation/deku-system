@@ -3,7 +3,6 @@
 # Do not use this image to install on a physical machine.
 
 #version=DEVEL
-cmdline
 lang en_US.UTF-8
 keyboard --xlayouts=us
 timezone Etc/UTC --utc
