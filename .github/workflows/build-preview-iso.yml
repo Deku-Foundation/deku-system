@@ -34,20 +34,23 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-profiles
-          ref: d17e3bdb68d847273dec378b036fb171ff73c88e
+          ref: 1aba28cd535c6ba90b7168660ff2188a3c5e24a2
           path: deku-profiles
           persist-credentials: false
       - name: Check out pinned Rust profile validator
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-build
-          ref: 328eeaf49a23af96cf07b39fa51c35979ee61dc6
+          ref: 20bd35be9db6b99cf26bbfb6482914ec333a8ac5
           path: deku-build
           persist-credentials: false
       - name: Install Rust toolchain for profile preflight
         uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # pinned action revision
         with:
           toolchain: 1.99.1
+      - name: Record immutable source revisions
+        run: |
+          echo "DEKU_VALIDATOR_SHA=$(git -C deku-build rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Validate profile and Kickstart in Rust before privileged build
         working-directory: deku-build
         run: |
@@ -60,6 +63,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           PROFILE_SHA="$(git -C deku-profiles rev-parse HEAD)"
+          echo "DEKU_PROFILE_SHA=$PROFILE_SHA" >> "$GITHUB_ENV"
           docker run --rm --privileged \
             -e GITHUB_SHA -e GITHUB_RUN_ID \
             -e PROFILE_SHA="$PROFILE_SHA" \
@@ -74,9 +78,12 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-tests
-          ref: d1c9b69b65e9c72dcd33c68b54559dc8424ef9f8
+          ref: 61d0758b006571f1fa944fdf6f50bb3584267232
           path: deku-tests
           persist-credentials: false
+      - name: Record immutable boot harness revision
+        run: |
+          echo "DEKU_TEST_HARNESS_SHA=$(git -C deku-tests rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Install QEMU and UEFI firmware
         run: |
           sudo apt-get update
@@ -93,11 +100,14 @@ jobs:
             echo "Matching OVMF code and variable-store files were not found." >&2
             exit 1
           fi
-      - name: Prepare generated artifact permissions for host-side boot test
+      - name: Prepare generated artifact permissions for host-side checks
+        if: always()
         run: |
           # The privileged container creates root-owned output files. Restore the
           # runner user ownership before the unprivileged QEMU harness writes evidence.
-          sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts
+          if [ -d deku-system/artifacts ]; then
+            sudo chown -R "$(id -u):$(id -g)" deku-system/artifacts
+          fi
       - name: Boot ISO in disposable UEFI QEMU
         run: |
           ISO="deku-system/artifacts/deku-linux-technology-preview-x86_64.iso"
@@ -112,6 +122,22 @@ jobs:
             --marker "DEKU_BOOT_OK:minimal-x86_64" \
             --timeout 300 \
             --evidence-dir deku-system/artifacts/boot-test
+      - name: Generate unsigned in-toto build statement
+        if: always()
+        env:
+          DEKU_SOURCE_SHA: ${{ github.sha }}
+          DEKU_PROFILE_SHA: ${{ env.DEKU_PROFILE_SHA }}
+          DEKU_VALIDATOR_SHA: ${{ env.DEKU_VALIDATOR_SHA }}
+          DEKU_TEST_HARNESS_SHA: ${{ env.DEKU_TEST_HARNESS_SHA }}
+          DEKU_WORKFLOW_RUN_ID: ${{ github.run_id }}
+          DEKU_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DEKU_BUILDER_IMAGE: fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+        run: |
+          python3 deku-system/scripts/write-provenance.py \
+            --iso deku-system/artifacts/deku-linux-technology-preview-x86_64.iso \
+            --manifest deku-system/artifacts/build-manifest.txt \
+            --boot-result deku-system/artifacts/boot-test/boot-result.json \
+            --output deku-system/artifacts/provenance.intoto.jsonl
       - name: Normalize artifact permissions
         if: always()
         run: |
