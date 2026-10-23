@@ -338,7 +338,7 @@ mod tests {
 
     #[test]
     fn runs_if_else_and_while_blocks() {
-        let source = "دع س = 0\nطالما س < 3\nاطبع(س)\nس = س + 1\nهاية\nإذا س == 3\nاطبع(\"انتهى\")\nوإلا\nاطبع(\"خطأ\")\nهاية";
+        let source = "دع س = 0\nطالما س < 3\nاطبع(س)\nس = س + 1\nنهاية\nإذا س == 3\nاطبع(\"انتهى\")\nوإلا\nاطبع(\"خطأ\")\nنهاية";
         assert_eq!(run(source).unwrap(), vec!["0", "1", "2", "انتهى"]);
     }
 
@@ -385,7 +385,7 @@ mod tests {
 
     #[test]
     fn loop_step_limit_stops_infinite_loops() {
-        let statements = parse(lex("طالما صح\nهاية").unwrap()).unwrap();
+        let statements = parse(lex("طالما صح\nنهاية").unwrap()).unwrap();
         let error = execute_with_step_limit(&statements, 5).unwrap_err();
         assert!(error.message.contains("حد التنفيذ"));
     }
