@@ -338,7 +338,7 @@ mod tests {
 
     #[test]
     fn parses_nested_blocks_and_operator_precedence() {
-        let tokens = lex("دع س = 2 + 3 * 4\nإذا س > 10\nاطبع(س)\نهاية").unwrap();
+        let tokens = lex("دع س = 2 + 3 * 4\nإذا س > 10\nاطبع(س)\nنهاية").unwrap();
         assert!(parse(tokens).is_ok());
     }
 
