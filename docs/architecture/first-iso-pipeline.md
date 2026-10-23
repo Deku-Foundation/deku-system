@@ -1,6 +1,6 @@
 # First ISO Pipeline
 
-Status: experimental ISO builder and VM acceptance path are implemented on `dev`; the first build failed during ISO authoring, and the GRUB fix is being retested. No successful boot test is claimed yet.
+Status: the experimental Fedora 44 ISO has been generated and uploaded as a short-retention CI artifact, but it has **not passed the UEFI boot gate**. The first completed VM attempt failed before firmware startup because the harness passed OVMF as a legacy `-bios` image. The harness now uses a matching OVMF pflash code/variable-store pair, and CI is retesting that fix. No successful boot is claimed.
 
 ## Decision
 Prove bootability with a mature upstream base and image tool first. This is a technology preview, not proof that Deku's native package manager is ready or that the system is independently bootstrapped.
@@ -13,6 +13,8 @@ The current proposal in [ADR-0001](https://github.com/Deku-Foundation/deku-linux
 The current workflow lives at `.github/workflows/build-preview-iso.yml` and runs only for selected builder-file changes on `dev` or manual dispatch. It checks out a pinned Fedora 44 container image and a pinned profile commit, then runs `livemedia-creator --make-iso --no-virt --iso-only` inside an ephemeral privileged container without host networking or secrets. It retains builder inventory, build logs and artifacts. The privilege boundary is acceptable only for a disposable GitHub-hosted runner; do not run this workflow's privileged container on a personal workstation.
 
 The first attempt installed the target packages, configured systemd, and generated the live initramfs, but the final ISO template failed because `grub2-mkimage` could not find `/usr/lib/grub/i386-pc/moddep.lst` in Lorax's staging tree. The Kickstart and profile now explicitly include `grub2-pc`, `grub2-pc-modules`, `grub2-tools`, `grub2-tools-extra`, and the UEFI boot packages. The marker service ordering was changed from `After=multi-user.target` to `After=systemd-user-sessions.service` to avoid a target ordering cycle. The rerun must prove the fix; source changes and passing contract tests alone are not proof.
+
+A later build completed image authoring and uploaded the ISO, manifest, checksums and logs. Its VM step then failed with `qemu: could not load PC BIOS '/usr/share/OVMF/OVMF_CODE_4M.fd'`. The root cause was a harness invocation error, not evidence that the ISO itself failed to boot: OVMF code must be loaded as read-only pflash with a separate writable variables image, not through QEMU's legacy `-bios` option. `deku-tests` now copies the matching variable-store template into a temporary directory and launches QEMU with paired pflash drives. The next run must prove the firmware starts and the serial boot marker appears.
 
 The profile and builder container are pinned by commit/digest, but Fedora's release and updates repositories are still rolling package inputs. The in-image RPM manifest and external build manifest improve traceability but do not yet make the entire system build reproducible. A future release gate must snapshot or otherwise lock all resolved package versions and preserve provenance/SBOM evidence.
 
@@ -41,8 +43,8 @@ The profile and builder container are pinned by commit/digest, but Fedora's rele
 - Publish no ISO link unless the artifact exists and boot-test evidence is available.
 
 ## Immediate engineering tasks
-1. Verify the GRUB module fix and obtain a non-empty ISO from the current rerun.
-2. Confirm the boot-marker service starts and the QEMU harness records serial output, QEMU stderr and a JSON result.
-3. Fix any boot or Kickstart errors based on retained logs; do not promote on metadata-only checks.
+1. Verify the paired OVMF pflash invocation and confirm QEMU reaches firmware and the live kernel.
+2. Require the boot-marker service to emit `DEKU_BOOT_OK:minimal-x86_64`; inspect preserved serial output and QEMU stderr if it does not.
+3. Keep the ISO private to short-retention CI artifacts until boot evidence is recorded; do not promote on metadata-only checks.
 4. Snapshot or lock resolved Fedora package inputs before making reproducibility claims.
 5. After a successful console boot, compare the upstream-base demo against an independent native package/rootfs track, and record the long-term base/libc/init/update decisions as ADRs.
