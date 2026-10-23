@@ -257,8 +257,8 @@ mod tests {
 
     #[test]
     fn conditions_must_be_boolean() {
-        assert!(check_source("إذا 5\nاطبع(1)\نهاية").is_err());
-        assert!(check_source("إذا 5 > 3\nاطبع(1)\نهاية").is_ok());
+        assert!(check_source("إذا 5\nاطبع(1)\nهاية").is_err());
+        assert!(check_source("إذا 5 > 3\nاطبع(1)\nهاية").is_ok());
     }
 
     #[test]
@@ -275,7 +275,7 @@ mod tests {
 
     #[test]
     fn block_bindings_do_not_escape_scope() {
-        let source = "إذا صح\nدع محلي = 1\نهاية\اطبع(محلي)";
+        let source = "إذا صح\nدع محلي = 1\nهاية\اطبع(محلي)";
         assert!(check_source(source).is_err());
     }
 }
