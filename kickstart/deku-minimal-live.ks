@@ -63,10 +63,45 @@ EOF
 
 rpm -qa --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' | sort > /etc/deku-package-manifest.txt
 
+install -D -m 0755 /dev/stdin /usr/local/libexec/deku-boot-acceptance.sh <<'SCRIPT'
+#!/usr/bin/bash
+set -Eeuo pipefail
+
+fail() {
+  printf 'DEKU_BOOT_FAIL:%s\\n' "$1"
+  exit 1
+}
+
+check() {
+  local name="$1"
+  shift
+  if "$@"; then
+    printf 'DEKU_CHECK_OK:%s\\n' "$name"
+  else
+    fail "$name"
+  fi
+}
+
+check release-metadata test -s /etc/deku-release
+check package-manifest test -s /etc/deku-package-manifest.txt
+check network-manager systemctl is-active --quiet NetworkManager
+if systemctl is-enabled --quiet sshd; then
+  fail sshd-enabled
+fi
+printf 'DEKU_CHECK_OK:sshd-not-enabled\\n'
+if [[ -r /sys/fs/selinux/enforce && "$(cat /sys/fs/selinux/enforce)" == "1" ]]; then
+  printf 'DEKU_CHECK_OK:selinux-enforcing\\n'
+else
+  fail selinux-not-enforcing
+fi
+printf 'DEKU_BOOT_OK:minimal-x86_64\\n'
+SCRIPT
+
 cat > /etc/systemd/system/deku-boot-marker.service <<'EOF'
 [Unit]
-Description=Deku Linux disposable VM boot acceptance marker
-After=systemd-user-sessions.service
+Description=Deku Linux disposable VM boot acceptance checks
+After=NetworkManager.service systemd-user-sessions.service
+Wants=NetworkManager.service
 ConditionPathExists=/dev/ttyS0
 
 [Service]
@@ -75,7 +110,7 @@ StandardOutput=tty
 TTYPath=/dev/ttyS0
 TTYReset=yes
 TTYVHangup=yes
-ExecStart=/usr/bin/printf DEKU_BOOT_OK:minimal-x86_64\\n
+ExecStart=/usr/local/libexec/deku-boot-acceptance.sh
 
 [Install]
 WantedBy=multi-user.target
