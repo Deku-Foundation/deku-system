@@ -4,6 +4,7 @@ mod interpreter;
 mod lexer;
 mod parser;
 mod token;
+mod typechecker;
 
 pub use diagnostic::{Diagnostic, Phase, Span};
 pub use interpreter::DEFAULT_STEP_LIMIT;
@@ -11,7 +12,8 @@ pub use interpreter::DEFAULT_STEP_LIMIT;
 /// Parse a source file without executing it.
 pub fn check(source: &str) -> Result<(), Diagnostic> {
     let tokens = lexer::lex(source)?;
-    parser::parse(tokens).map(|_| ())
+    let statements = parser::parse(tokens)?;
+    typechecker::check(&statements)
 }
 
 /// Execute a Rukn source file with the default interpreter step limit.
@@ -23,6 +25,7 @@ pub fn run(source: &str) -> Result<Vec<String>, Diagnostic> {
 pub fn run_with_step_limit(source: &str, step_limit: u64) -> Result<Vec<String>, Diagnostic> {
     let tokens = lexer::lex(source)?;
     let statements = parser::parse(tokens)?;
+    typechecker::check(&statements)?;
     interpreter::execute_with_step_limit(&statements, step_limit)
 }
 
