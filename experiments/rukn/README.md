@@ -4,7 +4,7 @@ Rukn is an experimental Arabic-first programming language being developed under 
 
 **Current status:** a small interpreter implemented in Rust. It is not yet a native compiler, a self-hosted compiler, a systems-programming language with ownership, or a production toolchain.
 
-This directory is an incubator inside `deku-system` because the available GitHub integration cannot create a new repository. The language should move to a dedicated repository such as `Deku-Foundation/rukn-lang` before the first public alpha; the interpreter must not remain permanently coupled to system-image assembly.
+This is a temporary incubator inside `deku-system` while the project establishes separate language governance. Rukn should move to a dedicated repository such as `Deku-Foundation/rukn-lang` before the first public alpha; the interpreter must not remain permanently coupled to system-image assembly.
 
 ## Try it
 
