@@ -34,8 +34,9 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
+          PROFILE_SHA="$(git -C deku-profiles rev-parse HEAD)"
           docker run --rm --privileged --network=host \
-            -e GITHUB_SHA -e GITHUB_RUN_ID \
+            -e GITHUB_SHA -e GITHUB_RUN_ID -e PROFILE_SHA \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace/deku-system \
             fedora:44 bash -euxo pipefail -c '
