@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: build-preview-iso-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-preview:
     # No pull_request trigger and no secrets: the image builder needs elevated
@@ -27,7 +31,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Deku-Foundation/deku-profiles
-          ref: main
+          ref: 0ff3b0a7efabefc573cf8e4fad5dbaf4c2ad9d10
           path: deku-profiles
       - name: Build in disposable Fedora 44 container
         env:
@@ -36,10 +40,10 @@ jobs:
         run: |
           PROFILE_SHA="$(git -C deku-profiles rev-parse HEAD)"
           docker run --rm --privileged --network=host \
-            -e GITHUB_SHA -e GITHUB_RUN_ID -e PROFILE_SHA \
+            -e GITHUB_SHA -e GITHUB_RUN_ID -e PROFILE_SHA="$PROFILE_SHA" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace/deku-system \
-            fedora:44 bash -euxo pipefail -c '
+            fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80 bash -euxo pipefail -c '
               dnf -y install lorax lorax-lmc-novirt grub2-pc-modules policycoreutils
               bash ./scripts/build-preview-iso.sh
             '
