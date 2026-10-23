@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
   build-preview:
+    # Keep the privileged builder limited to the canonical integration branch, including workflow_dispatch.
+    if: github.ref == 'refs/heads/dev'
     # No pull_request trigger and no secrets: the image builder needs elevated
     # mount privileges. This runs only on an ephemeral GitHub-hosted runner.
     runs-on: ubuntu-latest
