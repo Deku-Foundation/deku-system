@@ -50,7 +50,7 @@ impl Scanner {
             match ch {
                 ' ' | '\t' | '\r' => {}
                 '\n' => self.push(TokenKind::Newline, start),
-                '#' => self.skip_comment(start)?,
+                '#' => self.skip_comment()?,
                 '(' => self.push(TokenKind::LeftParen, start),
                 ')' => self.push(TokenKind::RightParen, start),
                 ',' | '،' => self.push(TokenKind::Comma, start),
@@ -237,7 +237,7 @@ impl Scanner {
         ))
     }
 
-    fn skip_comment(&mut self, comment_span: Span) -> Result<(), Diagnostic> {
+    fn skip_comment(&mut self) -> Result<(), Diagnostic> {
         while let Some(ch) = self.peek() {
             if ch == '\n' {
                 break;
@@ -251,7 +251,6 @@ impl Scanner {
             }
             self.advance();
         }
-        let _ = comment_span;
         Ok(())
     }
 
@@ -363,6 +362,11 @@ mod tests {
     fn parses_escaped_strings_and_comments() {
         let tokens = lex("اطبع(\"سطر\\nثانٍ\") # تعليق").unwrap();
         assert_eq!(tokens[2].kind, TokenKind::String("سطر\nثانٍ".into()));
+    }
+
+    #[test]
+    fn rejects_bidi_controls_inside_comments() {
+        assert!(lex("# تعليق \u{202E}\nدع س = 1").is_err());
     }
 
     #[test]
