@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "release_id": "deku-dev-2026-10-23",
+  "target": {
+    "architecture": "x86_64",
+    "profile": "kde-plasma"
+  },
+  "inputs": {
+    "base_revision": "1111111111111111111111111111111111111111",
+    "base_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "kernel_revision": "2222222222222222222222222222222222222222",
+    "kernel_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "catalog_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "toolchain_id": "llvm-20.1.8-rust-1.90.0",
+    "configuration_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "packages": [
+    {"name": "bash", "version": "5.3.3", "architecture": "x86_64", "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
+    {"name": "glibc", "version": "2.42", "architecture": "x86_64", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+    {"name": "plasma-workspace", "version": "6.4.0", "architecture": "x86_64", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+    {"name": "fontconfig-data", "version": "2.17.1", "architecture": "noarch", "sha256": "9999999999999999999999999999999999999999999999999999999999999999"}
+  ]
+}
