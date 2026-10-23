@@ -4,7 +4,7 @@ Deku System is intended to assemble verified native packages and, later, bootabl
 
 ## Current status
 
-**Prototype stage.** The repository now contains a metadata-only system composition manifest validator and example fixture. It does not download package artifacts, execute build commands, assemble a root filesystem, produce an initramfs, create an ISO, sign a release, or publish images. There is no supported image builder or release pipeline yet.
+**Prototype stage.** The manifest validator is metadata-only: it does not download package artifacts, execute build commands, assemble a root filesystem, produce an initramfs, sign a release, or publish images. A separate experimental Fedora 44/Lorax path (`kickstart/deku-minimal-live.ks` plus `scripts/build-preview-iso.sh`) attempts to create a live ISO for UEFI/QEMU testing. This is an upstream-based technology preview, not an independent Deku root filesystem or a supported release. No ISO is accepted until CI produces an artifact and the VM boot test records evidence.
 
 ## Manifest contract
 
@@ -49,7 +49,13 @@ A successful validation means the metadata conforms to the schema and basic cons
 
 Before choosing how updates switch the live host system, compare a generation-based root design with an image-based approach such as OSTree/bootc in disposable VMs. The comparison must include crash consistency, bootloader and kernel integration, `/etc` merge rules, disk-space limits, upgrades, recovery, and rollback. Deku should select one transaction owner for the system root rather than stacking competing managers over the same paths.
 
-## Acceptance gates before an ISO
+## Engineering references
+
+- [First ISO pipeline and tool evaluation](docs/architecture/first-iso-pipeline.md)
+- [Rust-first/upstream-first architecture and release gates](https://github.com/Deku-Foundation/deku-linux/blob/main/docs/strategy/iso-build-gap-analysis.md)
+- [Experimental ISO build workflow](.github/workflows/build-preview-iso.yml)
+
+## Acceptance gates before a supported release
 
 1. Validate and authenticate all artifact/repository metadata.
 2. Assemble a minimal root filesystem in an isolated worker using verified inputs.
