@@ -60,9 +60,7 @@ The Fedora 44 image is only a technology-preview test fixture. The production pa
 - [First ISO pipeline and tool evaluation](docs/architecture/first-iso-pipeline.md)
 - [Upstream image-builder comparison: Fedora, NixOS and Void](docs/architecture/upstream-builder-comparison.md)
 - [Rust-first/upstream-first architecture and release gates](https://github.com/Deku-Foundation/deku-linux/blob/main/docs/strategy/iso-build-gap-analysis.md)
-- [Experimental ISO build workflow](.github/workflows/build-preview-iso.yml)
 - [Experimental ISO pipeline security review](docs/security/iso-pipeline-review.md)
-- [Upstream image-builder comparison](docs/architecture/upstream-builder-comparison.md)
 
 ## Acceptance gates before a supported release
 
