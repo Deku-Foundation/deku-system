@@ -4,7 +4,9 @@ Deku System is intended to assemble verified native packages and, later, bootabl
 
 ## Current status
 
-**Prototype stage.** The system-manifest validator remains metadata-only. Separately, an experimental Fedora 44/Lorax ISO has been generated and passed one UEFI/QEMU serial-marker boot test: [workflow run](https://github.com/Deku-Foundation/deku-system/actions/runs/40003527897). The ISO SHA-256 was a5d604ea3964a8a05c7a42b0c515586204e0f5c23a1a5e412fa585649eca5a58. This proves a limited upstream-based technology-preview boot only; it is not an independent Deku root filesystem, official release, hardware-certification result or production installer.
+**Infrastructure-first development. ISO production is paused.** An earlier Fedora 44/Lorax experiment created an image, and a later run is recorded as having passed a limited QEMU serial-marker check; however, the experiment is intentionally not an accepted product deliverable. The build workflow, Kickstart file and build script have been removed from `dev`. These historical runs do not prove an independent Deku root filesystem, production package manager, secure repository, installer or supported release.
+
+The active goal is the independent distribution infrastructure: package recipes, isolated build workers, Rust package transactions, repository metadata/trust, reproducible build evidence, and a licensed installer architecture. See the [infrastructure-first roadmap](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/strategy/infrastructure-first-roadmap.md) and [paused ISO experiment record](docs/architecture/first-iso-pipeline.md).
 
 ## Manifest contract
 
