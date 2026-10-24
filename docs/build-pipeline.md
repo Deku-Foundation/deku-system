@@ -1,29 +1,31 @@
-# Deku build pipeline: initial design
+# Distribution build infrastructure — active design
 
-**Status:** Proposed. This is not yet a working image builder.
+**Status:** proposal and component contract, not a deployed build service. Fedora/Lorax ISO production is paused; image building is not the project priority.
 
-## Pipeline stages
+## End-to-end package flow
 
-1. **Resolve inputs:** select exact source versions, immutable commits, source URLs, and expected digests.
-2. **Review metadata:** validate licensing, dependency declarations, patch inventory, and build instructions before executing upstream code.
-3. **Build in isolation:** use a disposable, unprivileged environment with bounded CPU, memory, disk, and network access. Do not mount host credentials or the Docker socket into untrusted builds.
-4. **Test artifacts:** inspect file lists, ownership, permissions, setuid bits, symlinks, dependencies, and package metadata. Run package-provided tests when feasible.
-5. **Record provenance:** retain input revisions, toolchain versions, environment description, logs, and artifact digests.
-6. **Compare rebuilds:** attempt independent rebuilds and compare outputs before making reproducibility claims.
-7. **Sign and publish:** a separate trusted release job verifies approved artifacts and provenance before signing or publishing. Pull-request builds must not access signing credentials.
+1. Review a recipe: immutable source revision/digest, patch digests, SPDX license expression, ABI/architecture, dependencies, outputs and tests.
+2. Acquire sources in a network-enabled fetch stage with redirect/IP/size/time limits. Verify each digest and preserve the exact fetched bytes.
+3. Run build steps in a disposable VM from a pinned build-environment identity. The build guest receives no secrets and has no network by default. The host retains no untrusted mount points or Docker socket access.
+4. Validate produced archives: normalized relative paths, traversal, symlink policy, duplicate entries, setuid/setgid, devices/FIFOs, ownership policy, entry counts and decompression/resource limits.
+5. Emit package artifact, package manifest, tests, logs and provenance bound to recipe revision, patches, toolchain and build environment.
+6. Compare independent rebuilds. Normalize timestamps and build paths where supported; record exceptions. Do not assert reproducibility without comparing outputs.
+7. Publish only after artifact verification and approval. Signing metadata runs separately from builds and PR jobs.
+8. Install through a transaction planner that verifies signed repository metadata, artifact digest, dependencies, conflicts, disk space and target root; journal staged changes and test interruption recovery.
 
-## Initial scope
+## Lessons from upstream systems
 
-Start with a small, harmless test artifact and deterministic checks. Do not begin with a complete ISO, bootstrap compiler chain, or production package repository until the small pipeline is repeatable.
+- Void separates recipe/build phases from the XBPS binary package and repository tools.
+- Nix makes inputs and dependency graphs explicit and enables isolated rebuild-oriented execution.
+- Debian's buildinfo/rebuild workflows expose the actual build environment and compare output bytes.
+- TUF separates repository trust roles and freshness from transport checksums.
+- These are architectural references, not an instruction to stack all their package formats or root-update models together.
 
-## Failure policy
+## Non-goals
 
-Fail closed when an input hash is missing or mismatched, metadata is malformed, required tests fail, an artifact contains unexpected privileged files, or provenance cannot be associated with the exact source revision. Any temporary exception must be explicit, reviewed, and time-bounded.
+- No Fedora-derived product and no active Fedora ISO workflow.
+- No arbitrary recipe shell executing on the coordinator or host.
+- No build or publication credentials in workers.
+- No production signing, package repository or update claims yet.
 
-## Open decisions
-
-- Initial architecture target and build host support.
-- Whether to adapt XBPS/xbps-src or another mature build backend.
-- Required network access model during build phases.
-- Artifact format and signing design.
-- How to provision independent rebuild workers.
+See the [infrastructure-first plan](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/strategy/infrastructure-first-roadmap.md) for milestones and source-reuse policy.
