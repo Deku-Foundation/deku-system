@@ -19,11 +19,11 @@ A schema-v1 manifest records:
 
 The validator rejects unknown fields, duplicate JSON keys and package names, unsupported architectures/profiles, unpinned revisions, noncanonical digests, malformed versions and over-sized JSON. It never executes commands from the manifest. The example digests are **fixtures only**, not references to real published artifacts.
 
-## Experimental ISO builder
+## Infrastructure-first status
 
-The `kickstart/deku-minimal-live.ks` and `scripts/build-preview-iso.sh` files define a Fedora 44-based live-image experiment. The workflow runs only from `dev` (or manual dispatch on `dev`), never on pull requests, and receives no secrets. After a successful UEFI boot it validates the installed RPM inventory captured over serial and emits an **unsigned** in-toto traceability statement. Neither the inventory nor the statement is a complete SBOM or an authenticated release attestation. The job uses a disposable GitHub-hosted runner and an ephemeral container. Review the workflow's privilege boundary before adapting it to another runner.
+The experimental Fedora/Lorax ISO path is **paused and its workflow, Kickstart and build script have been removed from `dev`**. It is not the project priority. The failed end-to-end job did not pass the UEFI smoke test: the host-side harness could not create its evidence directory because the build container left root-owned files. No accepted ISO or supported release is claimed.
 
-This remains an experimental Fedora-based technology preview, not a supported Deku ISO. It does not establish an independent Deku root filesystem, prove the native package manager, or justify a production-readiness claim. The successful artifact was retained by GitHub Actions for seven days; see the linked run for its downloadable bundle. Do not run the privileged build script directly on a personal workstation. The SHA-256 and boot evidence identify that specific image, not future rebuilds.
+The active priority is the distribution infrastructure: package recipe and build contracts, isolated workers, native Rust package-manager transactions, repository metadata and trust, installer architecture and upstream-license compliance. See [the infrastructure-first platform plan](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/strategy/infrastructure-first-roadmap.md) and [the paused ISO experiment record](docs/architecture/first-iso-pipeline.md).
 
 ## Run validation
 
