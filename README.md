@@ -4,7 +4,7 @@ Deku System is intended to assemble verified native packages and, later, bootabl
 
 ## Current status
 
-**Prototype stage.** The system-manifest validator remains metadata-only. Separately, an experimental Fedora 44/Lorax ISO has been generated and passed one UEFI/QEMU serial-marker boot test: [workflow run](https://github.com/Deku-Foundation/deku-system/actions/runs/40003527897). The ISO SHA-256 was a5d604ea3964a8a05c7a42b0c515586204e0f5c23a1a5e412fa585649eca5a58. This proves a limited upstream-based technology-preview boot only; it is not an independent Deku root filesystem, official release, hardware-certification result or production installer.
+**Infrastructure-first development. ISO production is paused.** The Fedora 44/Lorax experiment is historical only. The latest reviewed end-to-end job did **not** pass the UEFI/QEMU acceptance gate: the host-side harness failed to create its evidence directory because the privileged build container left root-owned output. No accepted ISO, independent Deku root filesystem, production package manager or supported release is claimed.
 
 ## Manifest contract
 
@@ -19,11 +19,11 @@ A schema-v1 manifest records:
 
 The validator rejects unknown fields, duplicate JSON keys and package names, unsupported architectures/profiles, unpinned revisions, noncanonical digests, malformed versions and over-sized JSON. It never executes commands from the manifest. The example digests are **fixtures only**, not references to real published artifacts.
 
-## Experimental ISO builder
+## Infrastructure-first status
 
-The `kickstart/deku-minimal-live.ks` and `scripts/build-preview-iso.sh` files define a first Fedora 44-based live-image experiment. The `Build experimental ISO` workflow runs only on pushes to `dev` that touch the builder files or by manual dispatch; it is deliberately not triggered by pull requests and receives no secrets because the upstream image builder needs elevated mount privileges. The job uses a disposable GitHub-hosted runner and an ephemeral container. Review the workflow's privilege boundary before adapting it to another runner.
+The experimental Fedora/Lorax ISO path is **paused and its workflow, Kickstart, build script and ISO-specific tests have been removed from this branch**. It is not the project priority. The failed end-to-end job did not pass the UEFI smoke test; the artifact-generation step completed, but the host-side harness could not create its evidence directory. Do not describe that run as a verified boot or a supported ISO.
 
-This remains an experimental Fedora-based technology preview, not a supported Deku ISO. It does not establish an independent Deku root filesystem, prove the native package manager, or justify a production-readiness claim. The successful artifact was retained by GitHub Actions for seven days; see the linked run for its downloadable bundle. Do not run the privileged build script directly on a personal workstation. The SHA-256 and boot evidence identify that specific image, not future rebuilds.
+The active priority is the distribution infrastructure: reviewed package recipes, isolated build workers, native Rust package transactions, repository metadata and trust, reproducible build evidence, installer architecture and upstream-license compliance. See the [infrastructure-first roadmap](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/strategy/infrastructure-first-roadmap.md) and [paused ISO experiment record](docs/architecture/first-iso-pipeline.md).
 
 ## Run validation
 
@@ -58,7 +58,6 @@ The Fedora 44 image is only a technology-preview test fixture. The production pa
 - [First ISO pipeline and tool evaluation](docs/architecture/first-iso-pipeline.md)
 - [Upstream image-builder comparison: Fedora, NixOS and Void](docs/architecture/upstream-builder-comparison.md)
 - [Rust-first/upstream-first architecture and release gates](https://github.com/Deku-Foundation/deku-linux/blob/main/docs/strategy/iso-build-gap-analysis.md)
-- [Experimental ISO build workflow](.github/workflows/build-preview-iso.yml)
 - [Experimental ISO pipeline security review](docs/security/iso-pipeline-review.md)
 - [Upstream image-builder comparison](docs/architecture/upstream-builder-comparison.md)
 
