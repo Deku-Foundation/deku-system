@@ -1,6 +1,6 @@
 # ISO experiment — paused
 
-**Status: paused by project direction, 2026-10-24.** ISO production is not the current priority. The active Fedora 44/Lorax workflow, build script, Kickstart and tests were removed from `dev`. Do not reactivate or recreate this pipeline unless a future architecture decision makes an integration image necessary for validating lower-level components.
+**Status: paused by project direction, 2026-10-24.** ISO production is not the current priority. The active Fedora 44/Lorax workflow, build script, Kickstart and ISO-specific tests were removed from `dev`. Do not reactivate or recreate this pipeline unless a future architecture decision makes an integration image necessary for validating lower-level components.
 
 ## Why it was paused
 
