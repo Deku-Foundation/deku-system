@@ -1,10 +1,10 @@
 # Deku System Composition
 
-Deku System is intended to assemble verified native packages and, later, bootable system images from reviewed, pinned inputs.
+Deku System defines the manifest and integration layer for composing a Deku system from reviewed, pinned inputs. The current code validates manifest metadata; it does not assemble a supported root filesystem or release image.
 
 ## Current status
 
-**Infrastructure-first development. ISO production is paused.** An earlier Fedora 44/Lorax experiment created an image, and a later run is recorded as having passed a limited QEMU serial-marker check; however, the experiment is intentionally not an accepted product deliverable. The build workflow, Kickstart file and build script have been removed from `dev`. These historical runs do not prove an independent Deku root filesystem, production package manager, secure repository, installer or supported release.
+**ISO production is paused.** The Fedora 44/Lorax experiment is retained as historical test evidence only. Its image and limited QEMU smoke results do not establish an independent Deku root filesystem or a supported release. The build workflow, Kickstart file and build script have been removed from `dev`.
 
 The active goal is the independent distribution infrastructure: package recipes, isolated build workers, Rust package transactions, repository metadata/trust, reproducible build evidence, and a licensed installer architecture. See the [infrastructure-first roadmap](https://github.com/Deku-Foundation/deku-linux/blob/dev/docs/strategy/infrastructure-first-roadmap.md) and [paused ISO experiment record](docs/architecture/first-iso-pipeline.md).
 
