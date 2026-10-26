@@ -22,21 +22,12 @@ jobs:
           test -s README.md
           test -s docs/build-pipeline.md
           test -s docs/architecture/first-iso-pipeline.md
+          test -s tests/test_infrastructure_first.py
           test ! -e .github/workflows/build-preview-iso.yml
           test ! -e scripts/build-preview-iso.sh
           test ! -e kickstart/deku-minimal-live.ks
           grep -qi "paused" docs/architecture/first-iso-pipeline.md
-          grep -qi "infrastructure-first" README.md
           grep -q "not the project priority" README.md
-          if grep -RInE '[[:blank:]]+          if grep -RInE '[[:blank:]]+$' --include='*.md' .; then
-            echo 'Trailing whitespace found in Markdown files.' >&2
-            exit 1
-          fi
-          echo 'Infrastructure-first policy and archived experiment status checks passed.'
- --include='*.md' .; then
-            echo 'Trailing whitespace found in Markdown files.' >&2
-            exit 1
-          fi
           if grep -RInE '[[:blank:]]+$' --include='*.md' .; then
             echo 'Trailing whitespace found in Markdown files.' >&2
             exit 1
